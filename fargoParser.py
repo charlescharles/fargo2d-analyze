@@ -47,20 +47,20 @@ class FargoParser:
         dims = np.loadtxt(self.pathTo("dims.dat"))
         self.rmax = dims[4]
         self.numOutputs = dims[5]
-        self.Nrad = dims[6]
-        self.Nsec = dims[7]
+        self.Nrad = int(dims[6])
+        self.Nsec = int(dims[7])
 
-        dtheta = math.pi/self.nrad
+        dtheta = math.pi/self.Nrad
         self.gasthetas = np.arange(0, 2*math.pi + (dtheta/2), dtheta)
 
 
-        planetData = np.loadtxt("orbit0.dat")
+        planetData = np.loadtxt(self.pathTo("orbit0.dat"))
         self.times = planetData[:, 0]
         self.Ntime = len(self.times)
 
 
     def pathTo(self, endpoint):
-        return self.outputDir + endpoint
+        return self.outputDir + "/" + endpoint
 
 
     def extractFileIndex(self, filePath):
@@ -68,22 +68,24 @@ class FargoParser:
         return int(re.search('[0-9]+', name).group(0))
 
 
-    def parseGasValue(self, type):
+    def parseGasValue(self, varType):
         """
-        :param type: "dens", "vrad", or "vtheta"
+        :param varType: "dens", "vrad", or "vtheta"
         :return:
         """
 
-        fileFormat = "gas{}[0-9]+.dat".format(type)
+        fileFormat = "gas{}*.dat".format(varType)
 
         filePaths = glob.glob(self.pathTo(fileFormat))
         sortedPaths = sorted(filePaths, key=self.extractFileIndex)
 
         arrays = []
         for path in sortedPaths:
-            arrays.append(np.fromfile(path, dtype='double'))
+            arr = np.fromfile(path, dtype='double')
+            arr.shape = (self.Nrad, self.Nsec)
+            arrays.append(arr)
 
-        return np.dstack(arrays)
+        return np.array(arrays)
 
 
     def parseGasOutput(self):
@@ -97,7 +99,7 @@ class FargoParser:
         self.gasvtheta = self.parseGasValue("vtheta")
 
 
-    def cellEccentricity(self):
+    def computeCellEccentricities(self):
         """
         compute eccentricity matrix
         :return:
@@ -124,8 +126,9 @@ class FargoParser:
         # increment theta every value
         thetas = it.cycle(self.gasthetas)
 
-        vrs = self.gasvrad
-        vthetas = self.gasvtheta
+        # iterate through linearly
+        vrs = np.nditer(self.gasvrad)
+        vthetas = np.nditer(self.gasvtheta)
 
         # x, y components of eccentricity (Mueller, Kley 2012)
         # such that e_vec = ex * xhat + ex * yhat
@@ -145,6 +148,27 @@ class FargoParser:
             es.append(e)
 
         # reshape eccentricity matrices
-        shape = [Nrad, Nsec, Ntime]
+        NtimeCalculated = len(exs) / (Nrad * Nsec)
+        shape = [NtimeCalculated, Nrad, Nsec]
+        exs, eys, es = map(np.array, [exs, eys, es])
         exs.shape = eys.shape = es.shape = shape
 
+        # self.exs = exs
+        # self.eys = eys
+        self.cellEccentricities = es
+
+
+    def computeRadialEccentricities(self):
+        Nsec = self.Nsec
+        Nrad = self.Nrad
+
+        cellEccentricities = self.cellEccentricities
+        gasDensities = self.gasdens
+
+        weightedEccentricities = np.einsum("abc,abc->ab", cellEccentricities, gasDensities)
+        radialDensity = np.sum(gasDensities, 2)
+
+        # normalized eccentricity(r, t)
+        eccentricities = np.divide(weightedEccentricities, radialDensity)
+
+        self.radialEccentricities = eccentricities
