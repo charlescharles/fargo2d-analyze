@@ -159,9 +159,6 @@ class FargoParser:
 
 
     def computeRadialEccentricities(self):
-        Nsec = self.Nsec
-        Nrad = self.Nrad
-
         cellEccentricities = self.cellEccentricities
         gasDensities = self.gasdens
 
@@ -172,3 +169,22 @@ class FargoParser:
         eccentricities = np.divide(weightedEccentricities, radialDensity)
 
         self.radialEccentricities = eccentricities
+
+
+    def weightedAverage(self, arr, axis):
+        """
+        NOTE: if we implement logarithmic scaling of Nrad we'll have to change this!
+        compute and return the density-weighted average of `arr` along axis = {'r', 'theta'}
+        :param arr:
+        :return:
+        """
+        density = self.gasdens
+        if axis == 'theta':
+            weightedSum = np.einsum("abc,abc->ab", arr, density)
+            radialDensity = np.sum(density, 2)
+            return np.divide(weightedSum, radialDensity)
+
+        elif axis == 'r':
+            weightedSum = np.einsum("abc,abc->ac", arr, density)
+            azimuthalDensity = np.sum(density, 1)
+            return np.divide(weightedSum, azimuthalDensity)
