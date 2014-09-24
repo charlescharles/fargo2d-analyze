@@ -40,6 +40,9 @@ class FargoParser:
         self.G = 1.0
         self.M = 1.0
 
+        self.initParams()
+        self.parseGasOutput()
+
 
     def initParams(self):
         self.gasradii = np.loadtxt(self.pathTo("used_rad.dat"))
@@ -50,7 +53,7 @@ class FargoParser:
         self.Nrad = int(dims[6])
         self.Nsec = int(dims[7])
 
-        dtheta = math.pi/self.Nrad
+        dtheta = math.pi/self.Nsec
         self.gasthetas = np.arange(0, 2*math.pi + (dtheta/2), dtheta)
 
 
@@ -98,6 +101,9 @@ class FargoParser:
         self.gasvrad = self.parseGasValue("vrad")
         self.gasvtheta = self.parseGasValue("vtheta")
 
+        # number of actual outputs
+        self.NtimesUsed = len(self.gasvtheta)
+
 
     def computeCellEccentricities(self):
         """
@@ -121,7 +127,7 @@ class FargoParser:
         ts = self.expandedCycle(self.times, Nsec * Nrad)
 
         # increment radius every Nrad values
-        rs = self.expandedCycle(self.gasradii, Nrad)
+        rs = self.expandedCycle(self.gasradii, Nsec)
 
         # increment theta every value
         thetas = it.cycle(self.gasthetas)
@@ -139,7 +145,7 @@ class FargoParser:
         # e = sqrt(ex^2 + ey^2)
         es = []
         for (r, theta, t, vr, vtheta) in zip(rs, thetas, ts, vrs, vthetas):
-            ex = (r * vtheta) * (vr * sin(theta) + vtheta * cos(theta)) / (G * M) - cos(theta)
+            ex = ((r * vtheta) * (vr * sin(theta) + vtheta * cos(theta)) / (G * M)) - cos(theta)
             ey = sin(theta) - (r * vtheta) * (vr * cos(theta) - vtheta * sin(theta)) / (G * M)
             e = sqrt(pow(ex, 2) + pow(ey, 2))
 
@@ -185,6 +191,21 @@ class FargoParser:
             return np.divide(weightedSum, radialDensity)
 
         elif axis == 'r':
-            weightedSum = np.einsum("abc,abc->ac", arr, density)
-            azimuthalDensity = np.sum(density, 1)
+            Nrad = self.Nrad
+            NtimesUsed = self.NtimesUsed
+
+            # differences between consecutive elements
+            delta_r = np.ediff1d(self.gasradii)
+
+            col = delta_r.reshape(-1, 1)
+            arr = np.hstack([col] * Nrad)
+            # 3-D array of dimensions (NtimesUsed, Nsec, Nrad)
+            # matching dimensions of gas variables
+            delta_r = np.array([arr] * NtimesUsed)
+
+            # element-wise multiply r-steps, the array, and density
+            # and sum over axis 1 (radius)
+            weightedSum = np.multiply(np.multiply(delta_r, arr), density).sum(1)
+            azimuthalDensity = np.multiply(delta_r, density).sum(1)
+
             return np.divide(weightedSum, azimuthalDensity)
