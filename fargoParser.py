@@ -45,7 +45,6 @@ class FargoParser:
 
 
     def initParams(self):
-        self.gasradii = np.loadtxt(self.pathTo("used_rad.dat"))
 
         dims = np.loadtxt(self.pathTo("dims.dat"))
         self.rmax = dims[4]
@@ -53,8 +52,10 @@ class FargoParser:
         self.Nrad = int(dims[6])
         self.Nsec = int(dims[7])
 
-        dtheta = math.pi/self.Nsec
-        self.gasthetas = np.arange(0, 2*math.pi + (dtheta/2), dtheta)
+        self.gasradii = np.loadtxt(self.pathTo("used_rad.dat"))[:self.Nrad]
+
+        dtheta = 2 * math.pi/self.Nsec
+        self.gasthetas = np.arange(0, 2*math.pi + (dtheta/2), dtheta)[:self.Nsec]
 
 
         planetData = np.loadtxt(self.pathTo("orbit0.dat"))
@@ -146,7 +147,8 @@ class FargoParser:
         es = []
         for (r, theta, t, vr, vtheta) in zip(rs, thetas, ts, vrs, vthetas):
             ex = ((r * vtheta) * (vr * sin(theta) + vtheta * cos(theta)) / (G * M)) - cos(theta)
-            ey = sin(theta) - (r * vtheta) * (vr * cos(theta) - vtheta * sin(theta)) / (G * M)
+            ey = ((r * vtheta) / (G * M)) * (vtheta * sin(theta) - vr * cos(theta)) - sin(theta)
+            #ey = sin(theta) - (r * vtheta) * (vr * cos(theta) - vtheta * sin(theta)) / (G * M)
             e = sqrt(pow(ex, 2) + pow(ey, 2))
 
             exs.append(ex)
