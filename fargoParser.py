@@ -123,6 +123,10 @@ class FargoParser:
         :return:
         """
 
+        print
+        print "*** computing cell eccentricities ***"
+        print
+
         Nsec = self.Nsec
         Nrad = self.Nrad
         Ntime = self.Ntime
@@ -156,7 +160,12 @@ class FargoParser:
         # magnitude of eccentricity
         # e = sqrt(ex^2 + ey^2)
         es = []
-        i = 0
+
+        if self.debug:
+            print
+            print "*** cycling through r, theta, t, vr, vtheta ***"
+            print
+
         for (r, theta, t, vr, vtheta) in zip(rs, thetas, ts, vrs, vthetas):
             ex = ((r * vtheta) * (vr * sin(theta) + vtheta * cos(theta)) / (G * M)) - cos(theta)
             ey = ((r * vtheta) / (G * M)) * (vtheta * sin(theta) - vr * cos(theta)) - sin(theta)
@@ -167,10 +176,9 @@ class FargoParser:
             eys.append(ey)
             es.append(e)
 
-            if self.debug and i % 10 == 0:
+            if self.debug:
                 print "r = " + str(r) + "; theta = " + str(theta) + "; t = " + str(t) +\
                       "; vr = " + str(vr) + "; vtheta = " + str(vtheta) + "; ecc = " + str(e)
-                i += 1
 
         # reshape eccentricity matrices
         NtimeCalculated = len(exs) / (Nrad * Nsec)
