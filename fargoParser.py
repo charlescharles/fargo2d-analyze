@@ -5,6 +5,8 @@ import glob
 import re
 import itertools as it
 import math
+import os
+import pickle
 
 class FargoParser:
     """
@@ -28,7 +30,7 @@ class FargoParser:
                     yield item
 
 
-    def __init__(self, outputDir):
+    def __init__(self, outputDir, debug=False):
         if outputDir.endswith('/'):
             outputDir = outputDir[:-1]
 
@@ -36,6 +38,7 @@ class FargoParser:
         self.gasdens = None
         self.gasvrad = None
         self.gasvtheta = None
+        self.debug = debug
 
         self.G = 1.0
         self.M = 1.0
@@ -78,7 +81,12 @@ class FargoParser:
         :return:
         """
 
-        fileFormat = "gas{}*.dat".format(varType)
+        if self.debug:
+            print
+            print "*** parsing values for gas" + varType + " ***"
+            print
+
+        fileFormat = "gas" + varType + "*.dat"
 
         filePaths = glob.glob(self.pathTo(fileFormat))
         sortedPaths = sorted(filePaths, key=self.extractFileIndex)
@@ -88,6 +96,9 @@ class FargoParser:
             arr = np.fromfile(path, dtype='double')
             arr.shape = (self.Nrad, self.Nsec)
             arrays.append(arr)
+
+            if self.debug:
+                print "parsing gas output file: " + path.split('/')[-1]
 
         return np.array(arrays)
 
@@ -145,6 +156,7 @@ class FargoParser:
         # magnitude of eccentricity
         # e = sqrt(ex^2 + ey^2)
         es = []
+        i = 0
         for (r, theta, t, vr, vtheta) in zip(rs, thetas, ts, vrs, vthetas):
             ex = ((r * vtheta) * (vr * sin(theta) + vtheta * cos(theta)) / (G * M)) - cos(theta)
             ey = ((r * vtheta) / (G * M)) * (vtheta * sin(theta) - vr * cos(theta)) - sin(theta)
@@ -154,6 +166,11 @@ class FargoParser:
             exs.append(ex)
             eys.append(ey)
             es.append(e)
+
+            if self.debug and i % 10 == 0:
+                print "r = " + str(r) + "; theta = " + str(theta) + "; t = " + str(t) +\
+                      "; vr = " + str(vr) + "; vtheta = " + str(vtheta) + "; ecc = " + str(e)
+                i += 1
 
         # reshape eccentricity matrices
         NtimeCalculated = len(exs) / (Nrad * Nsec)
@@ -165,15 +182,38 @@ class FargoParser:
         # self.eys = eys
         self.cellEccentricities = es
 
-    def save(self, array, filename):
+    def saveProperty(self, propertyName):
         """
         saves array to filename in working directory
-        :param array:
-        :param filename:
+        :param propertyName: ["dims", "gasVariables", "cellEccentricities"]
         :return:
         """
 
-        np.save(self.pathTo(filename), array)
+        outputDir = os.path.dirname(self.pathTo('parsedOutput'))
+        if not os.path.exists(outputDir):
+            os.mkdir(outputDir)
+
+        if propertyName == "dims":
+            dims = {
+                'Nsec': self.Nsec,
+                'Nrad': self.Nrad,
+                'usedRadii': self.gasradii,
+                'usedThetas': self.gasthetas,
+                'usedTimes': self.NtimesUsed,
+                'rmax': self.rmax,
+                'times': self.times
+            }
+            pickle.dump(dims, self.pathTo("parsedOutput/dimensions.pickle"))
+
+        elif propertyName == 'gasVariables':
+            variables = ['gasdens', 'gasvrad', 'gasvtheta']
+            for var in variables:
+                npArr = getattr(self, var)
+                np.save(self.pathTo('parsedOutput/' + var), npArr)
+
+        elif propertyName == 'cellEccentricities':
+            npArr = self.cellEccentricities
+            np.save(self.pathTo('parsedOutput/cellEccentricities'), npArr)
 
 
     def weightedAverage(self, arr, axis):
