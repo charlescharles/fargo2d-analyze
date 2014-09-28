@@ -6,12 +6,24 @@ import re
 import itertools as it
 import math
 import os
+import sys
 import pickle
 
 class FargoParser:
     """
     a parser for Fargo2D output files
     """
+
+    class Logger(object):
+        def __init__(self, filename="diagnostics.log"):
+            self.terminal = sys.stdout
+            self.log = open(filename, 'a')
+
+        def write(self, message):
+            self.terminal.write(message)
+            self.log.write(message)
+
+    sys.stdout = Logger('diagnostics.log')
 
     def expandedCycle(self, iterable, n):
         """
@@ -110,8 +122,22 @@ class FargoParser:
         """
 
         self.gasdens = self.parseGasValue("dens")
+
+        if self.debug:
+            print "*** writing gasdens ***"
+            np.save(self.pathTo('parsedGasDens'), self.gasdens)
+
         self.gasvrad = self.parseGasValue("vrad")
+
+        if self.debug:
+            print "*** writing gasvrad ***"
+            np.save(self.pathTo('parsedGasVrad'), self.gasvrad)
+
         self.gasvtheta = self.parseGasValue("vtheta")
+
+        if self.debug:
+            print "*** writing gasvtheta ***"
+            np.save(self.pathTo('parsedGasVtheta'), self.gasvtheta)
 
         # number of actual outputs
         self.NtimesUsed = len(self.gasvtheta)
