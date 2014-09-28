@@ -165,18 +165,15 @@ class FargoParser:
         # self.eys = eys
         self.cellEccentricities = es
 
+    def save(self, array, filename):
+        """
+        saves array to filename in working directory
+        :param array:
+        :param filename:
+        :return:
+        """
 
-    def computeRadialEccentricities(self):
-        cellEccentricities = self.cellEccentricities
-        gasDensities = self.gasdens
-
-        weightedEccentricities = np.einsum("abc,abc->ab", cellEccentricities, gasDensities)
-        radialDensity = np.sum(gasDensities, 2)
-
-        # normalized eccentricity(r, t)
-        eccentricities = np.divide(weightedEccentricities, radialDensity)
-
-        self.radialEccentricities = eccentricities
+        np.save(self.pathTo(filename), array)
 
 
     def weightedAverage(self, arr, axis):
