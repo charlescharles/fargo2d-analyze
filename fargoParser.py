@@ -67,10 +67,10 @@ class FargoParser:
         # Nsec
         self.numThetaIntervals = int(dims[7])
 
-        self.radialIntervals = np.loadtxt(self.pathTo("used_rad.dat"))[:self.Nrad]
+        self.radialIntervals = np.loadtxt(self.pathTo("used_rad.dat"))[:self.numRadialIntervals]
 
-        dtheta = 2 * math.pi/self.Nsec
-        self.thetaIntervals = np.arange(0, 2*math.pi + (dtheta/2), dtheta)[:self.Nsec]
+        dtheta = 2 * math.pi/self.numThetaIntervals
+        self.thetaIntervals = np.arange(0, 2*math.pi + (dtheta/2), dtheta)[:self.numThetaIntervals]
 
         planetData = np.loadtxt(self.pathTo("orbit0.dat"))
         self.timeIntervals = planetData[:, 0]
@@ -194,7 +194,9 @@ class FargoParser:
 
         logging.info("run params:")
         logging.info(str(params))
-        pickle.dump(params, self.pathTo("parsed_parameters.pickle"))
+
+        with open(self.pathTo('parsed_parameters.pickle'), 'w') as f:
+            pickle.dump(params, f)
 
 
     def weightedAverage(self, arr, axis):
