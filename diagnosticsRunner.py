@@ -9,26 +9,25 @@ def main():
     optParser.add_option("-i", "--inputdirectory", action="store",
                       type="string", dest="inputDirectory")
 
-    optParser.add_option("-d", "--debug", action="store_const",
-                      const=True, dest="debug")
+    optParser.add_option("-b", "--batchsize", action="store",
+                         type="int", dest="batchSize", default=100)
 
     (options, args) = optParser.parse_args()
 
     if not options.inputDirectory:
         optParser.error("you must specify an input directory with -i or --inputdirectory")
 
-    fargoParser = FargoParser(options.inputDirectory, options.debug)
-    fargoParser.computeCellEccentricities()
+    fargoParser = FargoParser(options.inputDirectory, options.batchSize)
 
-    outputDir = os.path.dirname(options.inputDirectory + "/parsedOutput")
-
-    if not os.path.exists(outputDir):
-        os.mkdir(outputDir)
-
-    outputProperties = ["dims", "gasVariables", "cellEccentricities"]
-
-    for prop in outputProperties:
-        fargoParser.saveProperty(prop)
+    # outputDir = os.path.dirname(options.inputDirectory + "/parsedOutput")
+    #
+    # if not os.path.exists(outputDir):
+    #     os.mkdir(outputDir)
+    #
+    # outputProperties = ["dims", "gasVariables", "cellEccentricities"]
+    #
+    # for prop in outputProperties:
+    #     fargoParser.saveProperty(prop)
 
 
 if __name__ == "__main__":

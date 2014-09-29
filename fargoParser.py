@@ -8,22 +8,35 @@ import math
 import os
 import sys
 import pickle
+import logging
+import gc
 
 class FargoParser:
     """
     a parser for Fargo2D output files
     """
 
-    class Logger(object):
-        def __init__(self, filename="diagnostics.log"):
-            self.terminal = sys.stdout
-            self.log = open(filename, 'a')
+    logging.basicConfig(level=logging.DEBUG, filename='parserDiagnostics.log', filemode='a')
+    console = logging.StreamHandler()
+    console.setLevel(logging.DEBUG)
+    logging.getLogger('').addHandler(console)
 
-        def write(self, message):
-            self.terminal.write(message)
-            self.log.write(message)
 
-    sys.stdout = Logger('diagnostics.log')
+    def __init__(self, outputDir, batchSize=100):
+        if outputDir.endswith('/'):
+            outputDir = outputDir[:-1]
+
+        self.outputDir = outputDir
+
+        self.batchSize = batchSize
+
+        self.G = 1.0
+        self.M = 1.0
+
+        self.initParams()
+        self.saveRunParameters()
+        self.run()
+
 
     def expandedCycle(self, iterable, n):
         """
@@ -42,40 +55,29 @@ class FargoParser:
                     yield item
 
 
-    def __init__(self, outputDir, debug=False):
-        if outputDir.endswith('/'):
-            outputDir = outputDir[:-1]
-
-        self.outputDir = outputDir
-        self.gasdens = None
-        self.gasvrad = None
-        self.gasvtheta = None
-        self.debug = debug
-
-        self.G = 1.0
-        self.M = 1.0
-
-        self.initParams()
-        self.parseGasOutput()
-
-
     def initParams(self):
+        logging.info("\n*** reading run parameters ***\n")
 
         dims = np.loadtxt(self.pathTo("dims.dat"))
-        self.rmax = dims[4]
-        self.numOutputs = dims[5]
-        self.Nrad = int(dims[6])
-        self.Nsec = int(dims[7])
+        self.maxRadius = dims[4]
 
-        self.gasradii = np.loadtxt(self.pathTo("used_rad.dat"))[:self.Nrad]
+        # Nrad
+        self.numRadialIntervals = int(dims[6])
+
+        # Nsec
+        self.numThetaIntervals = int(dims[7])
+
+        self.radialIntervals = np.loadtxt(self.pathTo("used_rad.dat"))[:self.Nrad]
 
         dtheta = 2 * math.pi/self.Nsec
-        self.gasthetas = np.arange(0, 2*math.pi + (dtheta/2), dtheta)[:self.Nsec]
-
+        self.thetaIntervals = np.arange(0, 2*math.pi + (dtheta/2), dtheta)[:self.Nsec]
 
         planetData = np.loadtxt(self.pathTo("orbit0.dat"))
-        self.times = planetData[:, 0]
-        self.Ntime = len(self.times)
+        self.timeIntervals = planetData[:, 0]
+        self.numTimeIntervals = len(self.timeIntervals)
+
+        filePaths = glob.glob(self.pathTo('gasdens*.dat'))
+        self.totalNumOutputs = len(filePaths)
 
 
     def pathTo(self, endpoint):
@@ -87,16 +89,13 @@ class FargoParser:
         return int(re.search('[0-9]+', name).group(0))
 
 
-    def parseGasValue(self, varType):
+    def parseGasValue(self, varType, startIndex, endIndex):
         """
         :param varType: "dens", "vrad", or "vtheta"
         :return:
         """
 
-        if self.debug:
-            print
-            print "*** parsing values for gas" + varType + " ***"
-            print
+        logging.info("\n*** parsing values for gas" + varType + " ***\n")
 
         fileFormat = "gas" + varType + "*.dat"
 
@@ -104,58 +103,39 @@ class FargoParser:
         sortedPaths = sorted(filePaths, key=self.extractFileIndex)
 
         arrays = []
-        for path in sortedPaths:
+        for path in sortedPaths[startIndex : endIndex]:
             arr = np.fromfile(path, dtype='double')
-            arr.shape = (self.Nrad, self.Nsec)
+            arr.shape = (self.numRadialIntervals, self.numThetaIntervals)
             arrays.append(arr)
 
-            if self.debug:
-                print "parsing gas output file: " + path.split('/')[-1]
+            logging.info("parsed gas output file: " + path.split('/')[-1])
 
-        return np.array(arrays)
+        ret = np.array(arrays)
+
+        return ret
 
 
-    def parseGasOutput(self):
+    def parseGasOutput(self, startIndex, endIndex):
         """
         read and parse gas density, vrad, vtheta and set values on self
-        :return:
+        :return: tuple of (gasdens, gasvrad, gasvtheta)
         """
 
-        self.gasdens = self.parseGasValue("dens")
+        varTypes = ['dens', 'vrad', 'vtheta']
 
-        if self.debug:
-            print "*** writing gasdens ***"
-            np.save(self.pathTo('parsedGasDens'), self.gasdens)
-
-        self.gasvrad = self.parseGasValue("vrad")
-
-        if self.debug:
-            print "*** writing gasvrad ***"
-            np.save(self.pathTo('parsedGasVrad'), self.gasvrad)
-
-        self.gasvtheta = self.parseGasValue("vtheta")
-
-        if self.debug:
-            print "*** writing gasvtheta ***"
-            np.save(self.pathTo('parsedGasVtheta'), self.gasvtheta)
-
-        # number of actual outputs
-        self.NtimesUsed = len(self.gasvtheta)
+        return (self.parseGasValue(varType, startIndex, endIndex) for varType in varTypes)
 
 
-    def computeCellEccentricities(self):
+    def computeCellEccentricities(self, vrad, vtheta, startIndex, endIndex):
         """
         compute eccentricity matrix
         :return:
         """
 
-        print
-        print "*** computing cell eccentricities ***"
-        print
+        logging.info("\n*** computing cell eccentricities ***\n")
 
-        Nsec = self.Nsec
-        Nrad = self.Nrad
-        Ntime = self.Ntime
+        numThetaIntervals = self.numThetaIntervals
+        numRadialIntervals = self.numRadialIntervals
 
         G = self.G
         M = self.M
@@ -165,89 +145,56 @@ class FargoParser:
         sqrt = math.sqrt
         pow = math.pow
 
-        # increment time every Nsec * Nrad values
-        ts = self.expandedCycle(self.times, Nsec * Nrad)
+        radialIntervals = self.radialIntervals
+        thetaIntervals = self.thetaIntervals
 
         # increment radius every Nrad values
-        rs = self.expandedCycle(self.gasradii, Nsec)
+        rs = self.expandedCycle(radialIntervals, numThetaIntervals)
 
         # increment theta every value
-        thetas = it.cycle(self.gasthetas)
+        thetas = it.cycle(thetaIntervals)
 
         # iterate through linearly
-        vrs = np.nditer(self.gasvrad)
-        vthetas = np.nditer(self.gasvtheta)
-
-        # x, y components of eccentricity (Mueller, Kley 2012)
-        # such that e_vec = ex * xhat + ex * yhat
-        exs = []
-        eys = []
+        vrs = np.nditer(vrad)
+        vthetas = np.nditer(vtheta)
 
         # magnitude of eccentricity
         # e = sqrt(ex^2 + ey^2)
         es = []
 
-        if self.debug:
-            print
-            print "*** cycling through r, theta, t, vr, vtheta ***"
-            print
+        logging.info("\n*** cycling through r, theta, vr, vtheta ***\n")
 
-        for (r, theta, t, vr, vtheta) in zip(rs, thetas, ts, vrs, vthetas):
+        for (r, theta, vr, vtheta) in zip(rs, thetas, vrs, vthetas):
             ex = ((r * vtheta) * (vr * sin(theta) + vtheta * cos(theta)) / (G * M)) - cos(theta)
             ey = ((r * vtheta) / (G * M)) * (vtheta * sin(theta) - vr * cos(theta)) - sin(theta)
-            #ey = sin(theta) - (r * vtheta) * (vr * cos(theta) - vtheta * sin(theta)) / (G * M)
             e = sqrt(pow(ex, 2) + pow(ey, 2))
 
-            exs.append(ex)
-            eys.append(ey)
             es.append(e)
 
-            if self.debug:
-                print "r = " + str(r) + "; theta = " + str(theta) + "; t = " + str(t) +\
-                      "; vr = " + str(vr) + "; vtheta = " + str(vtheta) + "; ecc = " + str(e)
+            logging.info("r = " + str(r) + "; theta = " + str(theta) +\
+                  "; vr = " + str(vr) + "; vtheta = " + str(vtheta) + "; ecc = " + str(e))
 
-        # reshape eccentricity matrices
-        NtimeCalculated = len(exs) / (Nrad * Nsec)
-        shape = [NtimeCalculated, Nrad, Nsec]
-        exs, eys, es = map(np.array, [exs, eys, es])
-        exs.shape = eys.shape = es.shape = shape
+        # reshape eccentricity matrix
+        numUsedTimeIntervals = len(es) / (numRadialIntervals * numThetaIntervals)
+        es = np.array(es).reshape([numUsedTimeIntervals, numRadialIntervals, numThetaIntervals])
 
-        # self.exs = exs
-        # self.eys = eys
-        self.cellEccentricities = es
+        return es
 
-    def saveProperty(self, propertyName):
-        """
-        saves array to filename in working directory
-        :param propertyName: ["dims", "gasVariables", "cellEccentricities"]
-        :return:
-        """
+    def saveRunParameters(self):
+        # outputDir = os.path.dirname(self.pathTo('parsedOutput'))
+        # if not os.path.exists(outputDir):
+        #     os.mkdir(outputDir)
 
-        outputDir = os.path.dirname(self.pathTo('parsedOutput'))
-        if not os.path.exists(outputDir):
-            os.mkdir(outputDir)
+        logging.info("\n*** saving run parameters ***\n")
 
-        if propertyName == "dims":
-            dims = {
-                'Nsec': self.Nsec,
-                'Nrad': self.Nrad,
-                'usedRadii': self.gasradii,
-                'usedThetas': self.gasthetas,
-                'usedTimes': self.NtimesUsed,
-                'rmax': self.rmax,
-                'times': self.times
-            }
-            pickle.dump(dims, self.pathTo("parsedOutput/dimensions.pickle"))
+        paramNames = ['numRadialIntervals', 'numThetaIntervals', 'radialIntervals', 'thetaIntervals',\
+                      'timeIntervals', 'maxRadius', 'totalNumOutputs']
 
-        elif propertyName == 'gasVariables':
-            variables = ['gasdens', 'gasvrad', 'gasvtheta']
-            for var in variables:
-                npArr = getattr(self, var)
-                np.save(self.pathTo('parsedOutput/' + var), npArr)
+        params = dict((paramName, getattr(self, paramName)) for paramName in paramNames)
 
-        elif propertyName == 'cellEccentricities':
-            npArr = self.cellEccentricities
-            np.save(self.pathTo('parsedOutput/cellEccentricities'), npArr)
+        logging.info("run params:")
+        logging.info(str(params))
+        pickle.dump(params, self.pathTo("parsed_parameters.pickle"))
 
 
     def weightedAverage(self, arr, axis):
@@ -264,17 +211,18 @@ class FargoParser:
             return np.divide(weightedSum, radialDensity)
 
         elif axis == 'r':
-            Nrad = self.Nrad
-            NtimesUsed = self.NtimesUsed
+            numRadialIntervals = self.numRadialIntervals
+            numUsedTimeIntervals = len(arr)
 
             # differences between consecutive elements
             delta_r = np.ediff1d(self.gasradii)
 
             col = delta_r.reshape(-1, 1)
-            arr = np.hstack([col] * Nrad)
+            arr = np.hstack([col] * numRadialIntervals)
+
             # 3-D array of dimensions (NtimesUsed, Nsec, Nrad)
             # matching dimensions of gas variables
-            delta_r = np.array([arr] * NtimesUsed)
+            delta_r = np.array([arr] * numUsedTimeIntervals)
 
             # element-wise multiply r-steps, the array, and density
             # and sum over axis 1 (radius)
@@ -282,3 +230,31 @@ class FargoParser:
             azimuthalDensity = np.multiply(delta_r, density).sum(1)
 
             return np.divide(weightedSum, azimuthalDensity)
+
+
+    def runBatch(self, startIndex, endIndex):
+        logging.info("\nrunning batch from " + str(startIndex) + " to " + str(endIndex) + "\n")
+
+        dens, vrad, vtheta = self.parseGasOutput(startIndex, endIndex)
+
+        logging.info("\ncomputing cell ecc from " + str(startIndex) + " to " + str(endIndex) + "\n")
+
+        cellEcc = self.computeCellEccentricities(vrad, vtheta, startIndex, endIndex)
+
+        vars = ['dens', 'vrad', 'vtheta', 'cellEcc']
+
+        for var in vars:
+            logging.info("\nsaving gas var " + var + " from " + str(startIndex) + " to " + str(endIndex) + "\n")
+            np.save(self.pathTo('parsed_' + var + str(startIndex) + '-' + str(endIndex)), eval(var))
+
+        dens = vrad = vtheta = cellEcc = None
+
+        gc.collect()
+
+
+    def run(self):
+        batchSize = self.batchSize
+        totalNumOutputs = self.totalNumOutputs
+        for start in range(0, totalNumOutputs, batchSize):
+            self.runBatch(start, start + batchSize)
+
