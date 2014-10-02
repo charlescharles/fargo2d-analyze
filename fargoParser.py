@@ -161,6 +161,8 @@ class FargoParser:
         # magnitude of eccentricity
         # e = sqrt(ex^2 + ey^2)
         es = []
+        exs = []
+        eys = []
 
         logging.info("\n*** cycling through r, theta, vr, vtheta ***\n")
 
@@ -199,6 +201,8 @@ class FargoParser:
             pickle.dump(params, f)
 
 
+
+
     def weightedAverage(self, arr, axis):
         """
         NOTE: if we implement logarithmic scaling of Nrad we'll have to change this!
@@ -218,6 +222,8 @@ class FargoParser:
 
             # differences between consecutive elements
             delta_r = np.ediff1d(self.gasradii)
+
+            delta_theta = 2.0 * math.pi / self.numThetaIntervals
 
             col = delta_r.reshape(-1, 1)
             arr = np.hstack([col] * numRadialIntervals)
