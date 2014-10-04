@@ -38,23 +38,6 @@ class FargoParser:
         self.run()
 
 
-    def expandedCycle(self, iterable, n):
-        """
-        cycle the expanded iterable, where the expanded iterable is the iterable with each element repeated n times
-        e.g., expandedCycle([A, B, C], 2) => [A, A, B, B, C, C, A, A, B, B, C, C, ...]
-        """
-        saved = []
-        for item in iterable:
-            saved.append(item)
-            for _ in range(n):
-                yield item
-
-        while saved:
-            for item in saved:
-                for _ in range(n):
-                    yield item
-
-
     def initParams(self):
         logging.info("\n*** reading run parameters ***\n")
 
@@ -125,119 +108,50 @@ class FargoParser:
 
         return (self.parseGasValue(varType, startIndex, endIndex) for varType in varTypes)
 
-
-    def computeCellEccentricities(self, vrad, vtheta, startIndex, endIndex):
+    def thetaBroadcast(self, row, numRows, numFrames):
         """
-        compute eccentricity matrix
-        :return:
+        broadcast a theta row into a numFrames x numRows x len(row) array
         """
 
-        logging.info("\n*** computing cell eccentricities ***\n")
-
-        numThetaIntervals = self.numThetaIntervals
-        numRadialIntervals = self.numRadialIntervals
-
-        G = self.G
-        M = self.M
-
-        sin = math.sin
-        cos = math.cos
-        sqrt = math.sqrt
-        pow = math.pow
-
-        radialIntervals = self.radialIntervals
-        thetaIntervals = self.thetaIntervals
-
-        # increment radius every Nrad values
-        rs = self.expandedCycle(radialIntervals, numThetaIntervals)
-
-        # increment theta every value
-        thetas = it.cycle(thetaIntervals)
-
-        # iterate through linearly
-        vrs = np.nditer(vrad)
-        vthetas = np.nditer(vtheta)
-
-        # magnitude of eccentricity
-        # e = sqrt(ex^2 + ey^2)
-        es = []
-        exs = []
-        eys = []
-
-        logging.info("\n*** cycling through r, theta, vr, vtheta ***\n")
-
-        for (r, theta, vr, vtheta) in zip(rs, thetas, vrs, vthetas):
-            ex = ((r * vtheta) * (vr * sin(theta) + vtheta * cos(theta)) / (G * M)) - cos(theta)
-            ey = ((r * vtheta) / (G * M)) * (vtheta * sin(theta) - vr * cos(theta)) - sin(theta)
-            e = sqrt(pow(ex, 2) + pow(ey, 2))
-
-            es.append(e)
-
-            logging.info("r = " + str(r) + "; theta = " + str(theta) +\
-                  "; vr = " + str(vr) + "; vtheta = " + str(vtheta) + "; ecc = " + str(e))
-
-        # reshape eccentricity matrix
-        numUsedTimeIntervals = len(es) / (numRadialIntervals * numThetaIntervals)
-        es = np.array(es).reshape([numUsedTimeIntervals, numRadialIntervals, numThetaIntervals])
-
-        return es
-
-    def saveRunParameters(self):
-        # outputDir = os.path.dirname(self.pathTo('parsedOutput'))
-        # if not os.path.exists(outputDir):
-        #     os.mkdir(outputDir)
-
-        logging.info("\n*** saving run parameters ***\n")
-
-        paramNames = ['numRadialIntervals', 'numThetaIntervals', 'radialIntervals', 'thetaIntervals',\
-                      'timeIntervals', 'maxRadius', 'totalNumOutputs']
-
-        params = dict((paramName, getattr(self, paramName)) for paramName in paramNames)
-
-        logging.info("run params:")
-        logging.info(str(params))
-
-        with open(self.pathTo('parsed_parameters.pickle'), 'w') as f:
-            pickle.dump(params, f)
+        arr = np.vstack([row] * numRows)
+        return np.array([arr] * numFrames)
 
 
-
-
-    def weightedAverage(self, arr, axis):
+    def radialBroadcast(self, row, numCols, numFrames):
         """
-        NOTE: if we implement logarithmic scaling of Nrad we'll have to change this!
-        compute and return the density-weighted average of `arr` along axis = {'r', 'theta'}
-        :param arr:
-        :return:
+        broadcast a radial row into a numFrames x len(row) x numCols array
         """
-        density = self.gasdens
-        if axis == 'theta':
-            weightedSum = np.einsum("abc,abc->ab", arr, density)
-            radialDensity = np.sum(density, 2)
-            return np.divide(weightedSum, radialDensity)
 
-        elif axis == 'r':
-            numRadialIntervals = self.numRadialIntervals
-            numUsedTimeIntervals = len(arr)
+        col = np.array(row).reshape([-1, 1])
+        arr = np.hstack([col] * numCols)
+        return np.array([arr] * numFrames)
 
-            # differences between consecutive elements
-            delta_r = np.ediff1d(self.gasradii)
 
-            delta_theta = 2.0 * math.pi / self.numThetaIntervals
+    def diskMassAverage(self, arr, density, params):
+        """
+        return average of `arr` weighted by density
+        """
+        numThetaIntervals = params['numThetaIntervals']
+        numUsedTimeIntervals = len(arr)
 
-            col = delta_r.reshape(-1, 1)
-            arr = np.hstack([col] * numRadialIntervals)
+        arr = arr[:, 1:, :]
+        density = density[:, 1:, :]
 
-            # 3-D array of dimensions (NtimesUsed, Nsec, Nrad)
-            # matching dimensions of gas variables
-            delta_r = np.array([arr] * numUsedTimeIntervals)
+        radialIntervals = params['radialIntervals']
 
-            # element-wise multiply r-steps, the array, and density
-            # and sum over axis 1 (radius)
-            weightedSum = np.multiply(np.multiply(delta_r, arr), density).sum(1)
-            azimuthalDensity = np.multiply(delta_r, density).sum(1)
+        delta_r = np.ediff1d(params['radialIntervals'])
 
-            return np.divide(weightedSum, azimuthalDensity)
+        delta_r_mat = self.radialBroadcast(delta_r, numThetaIntervals, numUsedTimeIntervals)
+        r_mat = self.radialBroadcast(radialIntervals[1:], numThetaIntervals, numUsedTimeIntervals)
+
+        r_delta_r = np.multiply(delta_r_mat, r_mat)
+        weightedArr = np.multiply(arr, density)
+
+        weightedSum = np.multiply(r_delta_r, weightedArr).sum(1).sum(1)
+
+        totalMass = np.multiply(r_delta_r, density).sum(1).sum(1)
+
+        return np.divide(weightedSum, totalMass)
 
 
     def runBatch(self, startIndex, endIndex):
