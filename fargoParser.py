@@ -5,7 +5,6 @@ import glob
 import re
 import math
 import logging
-import gc
 
 class FargoParser:
     """
