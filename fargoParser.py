@@ -38,10 +38,14 @@ class FargoParser:
         self.startIndex = 0
 
 
+    def _pathTo(self, endPath):
+        return self.outputDir + endPath
+
+
     def _readRunParams(self):
         logging.info("\n*** reading run parameters ***\n")
 
-        dims = np.loadtxt(self.pathTo("dims.dat"))
+        dims = np.loadtxt(self._pathTo("dims.dat"))
         self.maxRadius = dims[4]
 
         # Nrad
@@ -50,15 +54,15 @@ class FargoParser:
         # Nsec
         self.numThetaIntervals = int(dims[7])
 
-        self.radialIntervals = np.loadtxt(self.pathTo("used_rad.dat"))[:self.numRadialIntervals]
+        self.radialIntervals = np.loadtxt(self._pathTo("used_rad.dat"))[:self.numRadialIntervals]
 
         dtheta = 2 * math.pi/self.numThetaIntervals
         self.thetaIntervals = np.arange(0, 2*math.pi + (dtheta/2), dtheta)[:self.numThetaIntervals]
 
-        planetData = np.loadtxt(self.pathTo("orbit0.dat"))
+        planetData = np.loadtxt(self._pathTo("orbit0.dat"))
         self.timeIntervals = planetData[:, 0]
 
-        filePaths = glob.glob(self.pathTo('gasdens*.dat'))
+        filePaths = glob.glob(self._pathTo('gasdens*.dat'))
         self.totalNumOutputs = len(filePaths)
 
 
@@ -119,7 +123,7 @@ class FargoParser:
 
 
     def hasRemainingBatches(self):
-        return (self.totalNumOutputs - self.lastReadIndex) > 0
+        return (self.totalNumOutputs - self.startIndex) > 0
 
 
     def getNextBatch(self):

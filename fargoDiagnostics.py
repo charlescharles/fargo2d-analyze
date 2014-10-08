@@ -25,6 +25,7 @@ def _azimuthalMassAverage(arr, density):
     """
     compute and return the azimuthal mass-weighted average of `arr`
     """
+    print arr.shape
     weightedSum = np.einsum("abc,abc->ab", arr, density)
     radialDensity = np.sum(density, 2)
     return np.divide(weightedSum, radialDensity)
@@ -126,17 +127,21 @@ def diskMassAverage(arr, density, radialIntervals, numThetaIntervals):
 
 
 def computeRadialDiagnostics(radialIntervals, thetaIntervals, dens, vr, vtheta):
-    cellEccMK, cellPeri = _computeCellDiagnostics(radialIntervals, thetaIntervals, vr, vtheta)
-
-    radialEccMK = _azimuthalMassAverage(cellEccMK, dens)
-    radialPeriMK = _azimuthalMassAverage(cellPeri, dens)
+    diags = _computeCellDiagnostics(radialIntervals, thetaIntervals, vr, vtheta)
+    radialEccMK = _azimuthalMassAverage(diags['cellEccentricity'], dens)
+    radialPeri = _azimuthalMassAverage(diags['cellPeriastron'], dens)
     radialEccLubow = _lubowEccentricity(radialIntervals, thetaIntervals, dens, vr, vtheta)
+
+    diskEccMK = diskMassAverage(diags['cellEccentricity'], dens, radialIntervals, len(thetaIntervals))
+    diskPeri = diskMassAverage(diags['cellPeriastron'], dens, radialIntervals, len(thetaIntervals))
 
     radialDens = np.average(dens, 2)
 
     return {
         "radialEccMK": radialEccMK,
-        "radialPeriMK": radialPeriMK,
+        "radialPeri": radialPeri,
         "radialEccLubow": radialEccLubow,
-        "radialDens": radialDens
+        "radialDens": radialDens,
+        "diskEccMK": diskEccMK,
+        "diskPeri": diskPeri
     }
