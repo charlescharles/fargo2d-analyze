@@ -1,8 +1,33 @@
 __author__ = 'cguo'
 
 from fargoParser import FargoParser
+from fargoPlotter import FargoPlotter
 from optparse import OptionParser
-import os
+import fargoDiagnostics as fd
+
+
+class FargoDiagnosticsRunner:
+
+    def __init__(self, inputDir, outputDir, plotDir, batchSize):
+        self.outputDir = outputDir
+
+        self.parser = FargoParser(inputDir, batchSize)
+
+        params = self.parser.getParams()
+        radIntervals = params['radialIntervals'] * params['maxRadius']
+        timeIntervals = params['timeIntervals']
+
+        self.params = params
+
+        self.plotter = FargoPlotter(radIntervals, timeIntervals, plotDir, 'Radius, AU', 'Time, binary periods')
+
+    def runBatches(self):
+        while self.parser.hasRemainingBatches():
+            dens, vrad, vtheta = self.parser.getNextBatch()
+            radialMeasurements = fd.computeRadialDiagnostics(self.params['radialIntervals'],\
+                                                             self.params['thetaIntervals'], dens, vrad, vtheta)
+            
+
 
 def main():
     optParser = OptionParser()
@@ -22,18 +47,6 @@ def main():
 
     if not options.inputDirectory:
         optParser.error('you must specify an input directory with -i or --inputdirectory')
-
-    fargoParser = FargoParser(options.inputDirectory, options.batchSize)
-
-    # outputDir = os.path.dirname(options.inputDirectory + '/parsedOutput')
-    #
-    # if not os.path.exists(outputDir):
-    #     os.mkdir(outputDir)
-    #
-    # outputProperties = ['dims', 'gasVariables', 'cellEccentricities']
-    #
-    # for prop in outputProperties:
-    #     fargoParser.saveProperty(prop)
 
 
 if __name__ == '__main__':
