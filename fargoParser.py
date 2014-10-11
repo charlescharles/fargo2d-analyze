@@ -54,7 +54,15 @@ class FargoParser:
         # Nsec
         self.numThetaIntervals = int(dims[7])
 
-        self.radialIntervals = np.loadtxt(self._pathTo("used_rad.dat"))[:self.numRadialIntervals]
+        radialEdges = np.loadtxt(self._pathTo("used_rad.dat"))
+        n = len(radialEdges)
+        r0 = radialEdges[:n - 1]
+        r1 = radialEdges[1:]
+
+        cube = lambda x: np.power(x, 3)
+        square = np.square
+
+        self.radialIntervals = (2.0 / 3.0) * ((cube(r1) - cube(r0)) / (square(r1) - square(r0)))
 
         dtheta = 2 * math.pi/self.numThetaIntervals
         self.thetaIntervals = np.arange(0, 2*math.pi + (dtheta/2), dtheta)[:self.numThetaIntervals]
@@ -73,6 +81,7 @@ class FargoParser:
 
 
     def _extractFileIndex(self, filePath):
+        print 'extracting file index from ' + filePath
         name = filePath.split('/')[-1]
         return int(re.search('[0-9]+', name).group(0))
 

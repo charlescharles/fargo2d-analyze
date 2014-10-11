@@ -3,7 +3,7 @@ __author__ = 'cguo'
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-import matplotlib.animation as animation
+import numpy as np
 
 class FargoPlotter:
     """
@@ -31,7 +31,35 @@ class FargoPlotter:
         return self.outputDir + fileName
 
 
-    def vsRadius(self, array, yName='', yDisplayLabel='', title='', index=''):
+    def threePanelVsRadius(self, density, eccentricities, periastrons):
+        logDensity = np.log10(density)
+
+        fig = plt.figure()
+
+        plt.subplot(3, 1, 1)
+        plt.plot(self.radialIntervals, logDensity)
+        plt.xlabel(self.radialLabel)
+        plt.ylabel('log(density)')
+
+        plt.subplot(3, 1, 2)
+        plt.plot(self.radialIntervals, logDensity)
+        plt.xlabel(self.radialLabel)
+        plt.ylabel('Eccentricity')
+
+        plt.subplot(3, 1, 3)
+        plt.plot(self.radialIntervals, logDensity)
+        plt.xlabel(self.radialLabel)
+        plt.ylabel('Periastron')
+
+        fname = self._pathTo(yName + '_vs_radius' + str(index) + '.png')
+
+        print "saving figure with name " + fname
+        plt.savefig(fname)
+        plt.close(fig)
+
+
+
+    def vsRadius(self, array, yName='', yDisplayLabel='', title='', index='', ylim=None):
         print len(array)
         print len(self.radialIntervals)
 
@@ -40,6 +68,8 @@ class FargoPlotter:
         plt.xlabel(self.radialLabel)
         plt.ylabel(yDisplayLabel)
         plt.title(title)
+        if ylim:
+            plt.ylim(ylim)
 
         fname = self._pathTo(yName + '_vs_radius' + str(index) + '.png')
 
@@ -50,7 +80,10 @@ class FargoPlotter:
 
     def vsTime(self, array, yName='', yDisplayLabel='', title=''):
         fig = plt.figure()
-        plt.plot(self.timeIntervals, array)
+        print 'array len is ' + str(len(array))
+        print 'timeinterval len is ' + str(len(self.timeIntervals))
+        print 'yname is ' + yName
+        plt.plot(self.timeIntervals[:len(array)], array)
         plt.xlabel(self.timeLabel)
         plt.ylabel(yDisplayLabel)
         plt.title(title)
