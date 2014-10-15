@@ -29,26 +29,36 @@ class FargoDiagnosticsRunner:
         i = 0
         while self.parser.hasRemainingBatches():
             dens, vrad, vtheta = self.parser.getNextBatch()
-            calculations = fd.computeRadialDiagnostics(self.params['radialIntervals'],\
+            calculations = fd.computeRadialDiagnostics(self.params['radialIntervals'],
                                                              self.params['thetaIntervals'], dens, vrad, vtheta)
             for j in range(0, len(dens), 20):
                 print 'plotting'
-                print calculations['radialEccMK'][j]
-                self.plotter.vsRadius(calculations['radialEccMK'][j], 'eccMK',\
+                self.plotter.vsRadius(calculations['radialEccMK'][j], 'eccMK',
                                       'Eccentricity (Mueller-Kley)', 'Eccentricity vs radius', i + j, [0, 0.35])
 
-                self.plotter.vsRadius(calculations['radialEccLubow'][j], 'eccLubow',\
+                self.plotter.vsRadius(calculations['radialEccLubow'][j], 'eccLubow',
                                       'Eccentricity (Lubow)', 'Lubow eccentricity vs radius', i + j, [0, 0.35])
 
-                self.plotter.vsRadius(calculations['radialPeri'][j], 'peri',\
-                                      'Periastron angle', 'Periastron angle vs radius', i + j, [-3.1, 3.1])
+                self.plotter.vsRadius(calculations['radialPeriMK'][j], 'periMK',
+                                      'Periastron (MK)', 'Periastron vs radius', i + j, [-3.1, 3.1])
+
+                self.plotter.vsRadius(calculations['radialPeriLubow'][j], 'periLubow',
+                                      'Periastron (Lubow)', 'Periastron vs radius', i + j, [-3.1, 3.1])
+
+                print "length of radialDens: " + str(len(calculations['radialDens']))
+
+                self.plotter.threePanelVsRadius(calculations['radialDens'][j],
+                                                calculations['radialEccMK'][j], calculations['radialEccLubow'][j],
+                                                calculations['radialPeriMK'][j], calculations['radialPeriLubow'][j],
+                                                "%.1f" % ((i + j)/20.0), 'threePanel', i + j)
 
             np.save(self.outputDir + '/radialEccMK' + str(i), calculations['radialEccMK'])
-            np.save(self.outputDir + '/radialPeri' + str(i), calculations['radialPeri'])
             np.save(self.outputDir + '/radialEccLubow' + str(i), calculations['radialEccLubow'])
+            np.save(self.outputDir + '/radialPeriMK' + str(i), calculations['radialPeriMK'])
+            np.save(self.outputDir + '/radialPeriLubow' + str(i), calculations['radialPeriLubow'])
             np.save(self.outputDir + '/radialDens' + str(i), calculations['radialDens'])
             np.save(self.outputDir + '/diskEccMK' + str(i), calculations['diskEccMK'])
-            np.save(self.outputDir + '/diskPeri' + str(i), calculations['diskPeri'])
+            np.save(self.outputDir + '/diskPeriMK' + str(i), calculations['diskPeriMK'])
 
             i += len(dens)
 

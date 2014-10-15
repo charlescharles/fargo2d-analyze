@@ -23,6 +23,7 @@ class FargoPlotter:
         self.timeLabel = timeLabel
 
         plt.ioff()
+        plt.rcParams['figure.figsize'] = 7, 11
 
 
     def _pathTo(self, fileName):
@@ -31,10 +32,13 @@ class FargoPlotter:
         return self.outputDir + fileName
 
 
-    def threePanelVsRadius(self, density, eccentricities, periastrons):
+    def threePanelVsRadius(self, density, eccMK, eccLubow, periMK, periLubow, time, fname, index):
+        print "logdens size: " + str(len(density))
+        print "radialint size: " + str(len(self.radialIntervals))
         logDensity = np.log10(density)
-
         fig = plt.figure()
+
+        fig.suptitle(time + " binary periods")
 
         plt.subplot(3, 1, 1)
         plt.plot(self.radialIntervals, logDensity)
@@ -42,21 +46,24 @@ class FargoPlotter:
         plt.ylabel('log(density)')
 
         plt.subplot(3, 1, 2)
-        plt.plot(self.radialIntervals, logDensity)
+        plt.plot(self.radialIntervals, eccMK, 'k', label="Mueller-Kley")
+        plt.plot(self.radialIntervals, eccLubow, 'k--', label="Lubow")
         plt.xlabel(self.radialLabel)
         plt.ylabel('Eccentricity')
+        plt.legend(loc='upper right')
 
         plt.subplot(3, 1, 3)
-        plt.plot(self.radialIntervals, logDensity)
+        plt.plot(self.radialIntervals, periMK, 'k', label="Mueller-Kley")
+        plt.plot(self.radialIntervals, periLubow, 'k--', label="Lubow")
         plt.xlabel(self.radialLabel)
         plt.ylabel('Periastron')
+        plt.legend(loc='upper right')
 
-        fname = self._pathTo(yName + '_vs_radius' + str(index) + '.png')
+        fname = self._pathTo(fname + str(index) + '.png')
 
-        print "saving figure with name " + fname
+        print "saving 3-panel figure with name " + fname
         plt.savefig(fname)
         plt.close(fig)
-
 
 
     def vsRadius(self, array, yName='', yDisplayLabel='', title='', index='', ylim=None):

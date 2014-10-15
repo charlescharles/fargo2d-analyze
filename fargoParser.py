@@ -48,9 +48,6 @@ class FargoParser:
         dims = np.loadtxt(self._pathTo("dims.dat"))
         self.maxRadius = dims[4]
 
-        # Nrad
-        self.numRadialIntervals = int(dims[6])
-
         # Nsec
         self.numThetaIntervals = int(dims[7])
 
@@ -62,7 +59,8 @@ class FargoParser:
         cube = lambda x: np.power(x, 3)
         square = np.square
 
-        self.radialIntervals = (2.0 / 3.0) * ((cube(r1) - cube(r0)) / (square(r1) - square(r0)))
+        self.radialIntervals = np.multiply((2.0 / 3.0), ((cube(r1) - cube(r0)) / (square(r1) - square(r0))))
+        self.numRadialIntervals = len(self.radialIntervals)
 
         dtheta = 2 * math.pi/self.numThetaIntervals
         self.thetaIntervals = np.arange(0, 2*math.pi + (dtheta/2), dtheta)[:self.numThetaIntervals]
@@ -72,7 +70,6 @@ class FargoParser:
 
         filePaths = glob.glob(self._pathTo('gasdens*.dat'))
         self.totalNumOutputs = len(filePaths)
-
 
         paramNames = ['numRadialIntervals', 'numThetaIntervals', 'radialIntervals', 'thetaIntervals',
                       'timeIntervals', 'maxRadius', 'totalNumOutputs']
