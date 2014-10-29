@@ -16,8 +16,9 @@ class FargoDiagnosticsRunner:
         self.parser = FargoParser(inputDir, batchSize)
 
         params = self.parser.getParams()
-        radIntervals = params['radialIntervals'] * 20
-        timeIntervals = params['timeIntervals']
+        radIntervals = np.multiply(params['radialIntervals'], 20)
+        numOutputs = params['totalNumOutputs']
+        timeIntervals = np.linspace(0, numOutputs/5.0, num=numOutputs)
 
         self.params = params
 
