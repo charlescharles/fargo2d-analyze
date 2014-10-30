@@ -129,8 +129,20 @@ def diskMassAverage(arr, density, radialIntervals, numThetaIntervals):
 
 
 def computeTotalMass(dens, radialIntervals, numThetaIntervals):
-    ones = np.ones((len(dens), radialIntervals, numThetaIntervals))
-    return diskMassAverage(ones, dens, radialIntervals, numThetaIntervals)
+    dens = dens[:, 1:, :]
+    
+    numUsedTimeIntervals = len(dens)
+
+    delta_r = np.ediff1d(radialIntervals)
+
+    delta_r_mat = _radialBroadcast(delta_r, numThetaIntervals, numUsedTimeIntervals)
+    r_mat = _radialBroadcast(radialIntervals[1:], numThetaIntervals, numUsedTimeIntervals)
+
+    r_delta_r = np.multiply(delta_r_mat, r_mat)
+
+    totalMass = np.multiply(r_delta_r, dens).sum(1).sum(1)
+
+    return totalMass
 
 
 def computeDiagnostics(radialIntervals, thetaIntervals, dens, vr, vtheta):
