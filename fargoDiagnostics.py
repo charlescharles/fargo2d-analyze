@@ -128,7 +128,12 @@ def diskMassAverage(arr, density, radialIntervals, numThetaIntervals):
     return np.divide(weightedSum, totalMass)
 
 
-def computeRadialDiagnostics(radialIntervals, thetaIntervals, dens, vr, vtheta):
+def computeTotalMass(dens, radialIntervals, numThetaIntervals):
+    ones = np.ones((len(dens), radialIntervals, numThetaIntervals))
+    return diskMassAverage(ones, dens, radialIntervals, numThetaIntervals)
+
+
+def computeDiagnostics(radialIntervals, thetaIntervals, dens, vr, vtheta):
     diags = _computeCellDiagnostics(radialIntervals, thetaIntervals, vr, vtheta)
     radialEccMK = _azimuthalMassAverage(diags['cellEccentricity'], dens)
     radialPeriMK = _azimuthalMassAverage(diags['cellPeriastron'], dens)
@@ -140,6 +145,8 @@ def computeRadialDiagnostics(radialIntervals, thetaIntervals, dens, vr, vtheta):
 
     radialDens = np.average(dens, 2)
 
+    totalMass = computeTotalMass(dens, radialIntervals, len(thetaIntervals))
+
     return {
         "radialEccMK": radialEccMK,
         "radialPeriMK": radialPeriMK,
@@ -147,5 +154,6 @@ def computeRadialDiagnostics(radialIntervals, thetaIntervals, dens, vr, vtheta):
         "radialPeriLubow": lubowDiagnostics['radialPeriLubow'],
         "radialDens": radialDens,
         "diskEccMK": diskEccMK,
-        "diskPeriMK": diskPeriMK
+        "diskPeriMK": diskPeriMK,
+        "totalMass": totalMass
     }

@@ -30,7 +30,7 @@ class FargoDiagnosticsRunner:
         i = 0
         while self.parser.hasRemainingBatches():
             dens, vrad, vtheta = self.parser.getNextBatch()
-            calculations = fd.computeRadialDiagnostics(self.params['radialIntervals'],
+            calculations = fd.computeDiagnostics(self.params['radialIntervals'],
                                                              self.params['thetaIntervals'], dens, vrad, vtheta)
             for j in range(0, len(dens), 20):
                 print 'plotting'
@@ -60,6 +60,7 @@ class FargoDiagnosticsRunner:
             np.save(self.outputDir + '/radialDens' + str(i), calculations['radialDens'])
             np.save(self.outputDir + '/diskEccMK' + str(i), calculations['diskEccMK'])
             np.save(self.outputDir + '/diskPeriMK' + str(i), calculations['diskPeriMK'])
+            np.save(self.outputDir + '/totalMass' + str(i), calculations['totalMass'])
 
             i += len(dens)
 
@@ -71,14 +72,24 @@ class FargoDiagnosticsRunner:
                 'arrayFilename': 'eccMKVsTime.npy',
                 'yName': 'diskEccMK',
                 'yLabel': 'Disk eccentricity (Mueller-Kley)',
-                'title': 'Disk eccentricity vs time'
+                'title': 'Disk eccentricity vs time',
+                'scatter': False
             },
             {
                 'fileFormat': '/diskPeri*.npy',
                 'arrayFilename': 'periVsTime.npy',
                 'yName': 'diskPeri',
                 'yLabel': 'Disk periastron angle',
-                'title': 'Disk periastron vs time'
+                'title': 'Disk periastron vs time',
+                'scatter': True
+            },
+            {
+                'fileFormat': '/totalMass*.npy',
+                'arrayFilename': 'massVsTime.npy',
+                'yName': 'totalMass',
+                'yLabel': 'Disk mass (code units)',
+                'title': 'Disk mass vs time',
+                'scatter': False
             }
         ]
 
@@ -94,7 +105,7 @@ class FargoDiagnosticsRunner:
 
             np.save(self.outputDir + '/' + type['arrayFilename'], vsTime)
 
-            self.plotter.vsTime(vsTime, type['yName'], type['yLabel'], type['title'])
+            self.plotter.vsTime(vsTime, type['yName'], type['yLabel'], type['title'], scatter=type['scatter'])
 
 
 def main():
