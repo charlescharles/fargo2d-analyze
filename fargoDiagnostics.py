@@ -128,6 +128,26 @@ def diskMassAverage(arr, density, radialIntervals, numThetaIntervals):
     return np.divide(weightedSum, totalMass)
 
 
+def radialDiskMassAverage(arr, density, radialIntervals, totalMass):
+    arr = arr[:, 1:]
+    density = density[:, 1:, :]
+
+    numTimeIntervals = len(density)
+
+    delta_r = np.ediff1d(radialIntervals)
+    delta_r_mat = np.array(delta_r * numTimeIntervals)
+    r_mat = np.array(radialIntervals[1:] * numTimeIntervals)
+    r_delta_r = np.multiply(delta_r_mat, r_mat)
+
+    radialDensity = density.sum(2)
+
+    weightedArr = np.multiply(arr, radialDensity)
+
+    weightedSum = np.multiply(np.multiply(weightedArr, r_delta_r), 2*math.pi).sum(1)
+
+    return np.divide(weightedSum, totalMass)
+
+
 def computeTotalMass(dens, radialIntervals, numThetaIntervals):
     dens = dens[:, 1:, :]
     
@@ -151,6 +171,8 @@ def computeDiagnostics(radialIntervals, thetaIntervals, dens, vr, vtheta):
     radialPeriMK = _azimuthalMassAverage(diags['cellPeriastron'], dens)
 
     lubowDiagnostics = _lubowDiagnostics(radialIntervals, thetaIntervals, dens, vr, vtheta)
+    radialEccLubow = lubowDiagnostics['radialEccLubow']
+    radialPeriLubow = lubowDiagnostics['radialPeriLubow']
 
     diskEccMK = diskMassAverage(diags['cellEccentricity'], dens, radialIntervals, len(thetaIntervals))
     diskPeriMK = diskMassAverage(diags['cellPeriastron'], dens, radialIntervals, len(thetaIntervals))
@@ -159,13 +181,18 @@ def computeDiagnostics(radialIntervals, thetaIntervals, dens, vr, vtheta):
 
     totalMass = computeTotalMass(dens, radialIntervals, len(thetaIntervals))
 
+    diskEccLubow = radialDiskMassAverage(radialEccLubow, dens, radialIntervals, totalMass)
+    diskPeriLubow = radialDiskMassAverage(radialPeriLubow, dens, radialIntervals, totalMass)
+
     return {
         "radialEccMK": radialEccMK,
         "radialPeriMK": radialPeriMK,
-        "radialEccLubow": lubowDiagnostics['radialEccLubow'],
-        "radialPeriLubow": lubowDiagnostics['radialPeriLubow'],
+        "radialEccLubow": radialEccLubow,
+        "radialPeriLubow": radialPeriLubow,
         "radialDens": radialDens,
         "diskEccMK": diskEccMK,
         "diskPeriMK": diskPeriMK,
+        "diskEccLubow": diskEccLubow,
+        "diskPeriLubow": diskPeriLubow,
         "totalMass": totalMass
     }

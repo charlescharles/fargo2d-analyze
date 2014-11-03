@@ -60,6 +60,8 @@ class FargoDiagnosticsRunner:
             np.save(self.outputDir + '/radialDens' + str(i), calculations['radialDens'])
             np.save(self.outputDir + '/diskEccMK' + str(i), calculations['diskEccMK'])
             np.save(self.outputDir + '/diskPeriMK' + str(i), calculations['diskPeriMK'])
+            np.save(self.outputDir + '/diskEccLubow' + str(i), calculations['diskEccLubow'])
+            np.save(self.outputDir + '/diskPeriLubow' + str(i), calculations['diskPeriLubow'])
             np.save(self.outputDir + '/totalMass' + str(i), calculations['totalMass'])
 
             i += len(dens)
@@ -76,10 +78,26 @@ class FargoDiagnosticsRunner:
                 'scatter': False
             },
             {
-                'fileFormat': '/diskPeri*.npy',
-                'arrayFilename': 'periVsTime.npy',
-                'yName': 'diskPeri',
-                'yLabel': 'Disk periastron angle',
+                'fileFormat': '/diskPeriMK*.npy',
+                'arrayFilename': 'periMKVsTime.npy',
+                'yName': 'diskPeriMK',
+                'yLabel': 'Disk periastron angle (MK)',
+                'title': 'Disk periastron vs time',
+                'scatter': True
+            },
+                        {
+                'fileFormat': '/diskEccLubow*.npy',
+                'arrayFilename': 'eccLubowVsTime.npy',
+                'yName': 'diskEccLubow',
+                'yLabel': 'Disk eccentricity (Lubow)',
+                'title': 'Disk eccentricity vs time',
+                'scatter': False
+            },
+            {
+                'fileFormat': '/diskPeriLubow*.npy',
+                'arrayFilename': 'periLubowVsTime.npy',
+                'yName': 'diskPeriLubow',
+                'yLabel': 'Disk periastron angle (Lubow)',
                 'title': 'Disk periastron vs time',
                 'scatter': True
             },
