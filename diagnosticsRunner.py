@@ -74,40 +74,35 @@ class FargoDiagnosticsRunner:
                 'arrayFilename': 'eccMKVsTime.npy',
                 'yName': 'diskEccMK',
                 'yLabel': 'Disk eccentricity (Mueller-Kley)',
-                'title': 'Disk eccentricity vs time',
-                'scatter': False
+                'title': 'Disk eccentricity vs time'
             },
             {
                 'fileFormat': '/diskPeriMK*.npy',
                 'arrayFilename': 'periMKVsTime.npy',
                 'yName': 'diskPeriMK',
                 'yLabel': 'Disk periastron angle (MK)',
-                'title': 'Disk periastron vs time',
-                'scatter': True
+                'title': 'Disk periastron vs time'
             },
                         {
                 'fileFormat': '/diskEccLubow*.npy',
                 'arrayFilename': 'eccLubowVsTime.npy',
                 'yName': 'diskEccLubow',
                 'yLabel': 'Disk eccentricity (Lubow)',
-                'title': 'Disk eccentricity vs time',
-                'scatter': False
+                'title': 'Disk eccentricity vs time'
             },
             {
                 'fileFormat': '/diskPeriLubow*.npy',
                 'arrayFilename': 'periLubowVsTime.npy',
                 'yName': 'diskPeriLubow',
                 'yLabel': 'Disk periastron angle (Lubow)',
-                'title': 'Disk periastron vs time',
-                'scatter': True
+                'title': 'Disk periastron vs time'
             },
             {
                 'fileFormat': '/totalMass*.npy',
                 'arrayFilename': 'massVsTime.npy',
                 'yName': 'totalMass',
                 'yLabel': 'Disk mass (code units)',
-                'title': 'Disk mass vs time',
-                'scatter': False
+                'title': 'Disk mass vs time'
             }
         ]
 
@@ -123,7 +118,7 @@ class FargoDiagnosticsRunner:
 
             np.save(self.outputDir + '/' + type['arrayFilename'], vsTime)
 
-            self.plotter.vsTime(vsTime, type['yName'], type['yLabel'], type['title'], scatter=type['scatter'])
+            self.plotter.vsTime(vsTime, type['yName'], type['yLabel'], type['title'])
 
 
 def main():

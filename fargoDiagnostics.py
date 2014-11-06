@@ -128,22 +128,20 @@ def diskMassAverage(arr, density, radialIntervals, numThetaIntervals):
     return np.divide(weightedSum, totalMass)
 
 
-def radialDiskMassAverage(arr, density, radialIntervals, totalMass):
+def radialDiskMassAverage(arr, radialDens, radialIntervals, totalMass):
     arr = arr[:, 1:]
-    density = density[:, 1:, :]
+    radialDens = radialDens[:, 1:]
 
-    numTimeIntervals = len(density)
+    numTimeIntervals = len(radialDens)
 
     delta_r = np.ediff1d(radialIntervals)
     delta_r_mat = np.array(delta_r * numTimeIntervals)
     r_mat = np.array(radialIntervals[1:] * numTimeIntervals)
     r_delta_r = np.multiply(delta_r_mat, r_mat)
 
-    radialDensity = density.sum(2)
+    weightedArr = np.multiply(np.multiply(np.multiply(arr, radialDens), 2 * math.pi), r_mat)
 
-    weightedArr = np.multiply(arr, radialDensity)
-
-    weightedSum = np.multiply(np.multiply(weightedArr, r_delta_r), 2*math.pi).sum(1)
+    weightedSum = np.multiply(weightedArr, delta_r).sum(1)
 
     return np.divide(weightedSum, totalMass)
 
@@ -160,7 +158,7 @@ def computeTotalMass(dens, radialIntervals, numThetaIntervals):
 
     r_delta_r = np.multiply(delta_r_mat, r_mat)
 
-    totalMass = np.multiply(r_delta_r, dens).sum(1).sum(1)
+    totalMass = np.multiply(np.multiply(r_delta_r, dens).sum(1).sum(1), 2 * math.pi)
 
     return totalMass
 
@@ -181,8 +179,8 @@ def computeDiagnostics(radialIntervals, thetaIntervals, dens, vr, vtheta):
 
     totalMass = computeTotalMass(dens, radialIntervals, len(thetaIntervals))
 
-    diskEccLubow = radialDiskMassAverage(radialEccLubow, dens, radialIntervals, totalMass)
-    diskPeriLubow = radialDiskMassAverage(radialPeriLubow, dens, radialIntervals, totalMass)
+    diskEccLubow = radialDiskMassAverage(radialEccLubow, radialDens, radialIntervals, totalMass)
+    diskPeriLubow = radialDiskMassAverage(radialPeriLubow, radialDens, radialIntervals, totalMass)
 
     return {
         "radialEccMK": radialEccMK,

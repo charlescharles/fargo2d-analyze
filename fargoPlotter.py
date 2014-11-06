@@ -85,17 +85,14 @@ class FargoPlotter:
         plt.close(fig)
 
 
-    def vsTime(self, array, yName='', yDisplayLabel='', title='', scatter=False):
+    def vsTime(self, array, yName='', yDisplayLabel='', title=''):
         plt.rcParams['figure.figsize'] = 9, 6
 
         fig = plt.figure()
         print 'array len is ' + str(len(array))
         print 'timeinterval len is ' + str(len(self.timeIntervals))
         print 'yname is ' + yName
-        if scatter:
-            plt.scatter(self.timeIntervals[:len(array)], array)
-        else:
-            plt.plot(self.timeIntervals[:len(array)], array)
+        plt.plot(self.timeIntervals[:len(array)], array)
         plt.xlabel(self.timeLabel)
         plt.ylabel(yDisplayLabel)
         plt.title(title)
