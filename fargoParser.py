@@ -37,6 +37,15 @@ class FargoParser:
         self.batchSize = batchSize
         self.startIndex = 0
 
+        self.sortedPaths = {}
+
+        gasVarTypes = ["dens", "vrad", "vtheta"]
+        for varType in gasVarTypes:
+            fileFormat = "gas" + varType + "*.dat"
+
+            filePaths = glob.glob(self._pathTo(fileFormat))
+            self.sortedPaths[varType] = sorted(filePaths, key=self._extractFileIndex)
+
 
     def _pathTo(self, endPath):
         return self.outputDir + endPath
@@ -95,13 +104,8 @@ class FargoParser:
 
         logging.info("\n*** parsing values for gas" + varType + " ***\n")
 
-        fileFormat = "gas" + varType + "*.dat"
-
-        filePaths = glob.glob(self._pathTo(fileFormat))
-        sortedPaths = sorted(filePaths, key=self._extractFileIndex)
-
         arrays = []
-        for path in sortedPaths[startIndex : endIndex]:
+        for path in self.sortedPaths[varType][startIndex : endIndex]:
             arr = np.fromfile(path, dtype='double')
             arr.shape = (self.numRadialIntervals, self.numThetaIntervals)
             arrays.append(arr)

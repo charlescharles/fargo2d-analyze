@@ -34,17 +34,17 @@ class FargoDiagnosticsRunner:
                                                              self.params['thetaIntervals'], dens, vrad, vtheta)
             for j in range(0, len(dens), 20):
                 print 'plotting'
-                self.plotter.vsRadius(calculations['radialEccMK'][j], 'eccMK',
-                                      'Eccentricity (Mueller-Kley)', 'Eccentricity vs radius', i + j, [0, 0.35])
-
-                self.plotter.vsRadius(calculations['radialEccLubow'][j], 'eccLubow',
-                                      'Eccentricity (Lubow)', 'Lubow eccentricity vs radius', i + j, [0, 0.35])
-
-                self.plotter.vsRadius(calculations['radialPeriMK'][j], 'periMK',
-                                      'Periastron (MK)', 'Periastron vs radius', i + j, [-3.1, 3.1])
-
-                self.plotter.vsRadius(calculations['radialPeriLubow'][j], 'periLubow',
-                                      'Periastron (Lubow)', 'Periastron vs radius', i + j, [-3.1, 3.1])
+                # self.plotter.vsRadius(calculations['radialEccMK'][j], 'eccMK',
+                #                       'Eccentricity (Mueller-Kley)', 'Eccentricity vs radius', i + j, [0, 0.35])
+                #
+                # self.plotter.vsRadius(calculations['radialEccLubow'][j], 'eccLubow',
+                #                       'Eccentricity (Lubow)', 'Lubow eccentricity vs radius', i + j, [0, 0.35])
+                #
+                # self.plotter.vsRadius(calculations['radialPeriMK'][j], 'periMK',
+                #                       'Periastron (MK)', 'Periastron vs radius', i + j, [-3.1, 3.1])
+                #
+                # self.plotter.vsRadius(calculations['radialPeriLubow'][j], 'periLubow',
+                #                       'Periastron (Lubow)', 'Periastron vs radius', i + j, [-3.1, 3.1])
 
                 print "length of radialDens: " + str(len(calculations['radialDens']))
 
@@ -54,14 +54,14 @@ class FargoDiagnosticsRunner:
                                                 "%.1f" % ((i + j)/5.0), 'threePanel', i + j)
 
             np.save(self.outputDir + '/radialEccMK' + str(i), calculations['radialEccMK'])
-            np.save(self.outputDir + '/radialEccLubow' + str(i), calculations['radialEccLubow'])
+            #np.save(self.outputDir + '/radialEccLubow' + str(i), calculations['radialEccLubow'])
             np.save(self.outputDir + '/radialPeriMK' + str(i), calculations['radialPeriMK'])
-            np.save(self.outputDir + '/radialPeriLubow' + str(i), calculations['radialPeriLubow'])
+            #np.save(self.outputDir + '/radialPeriLubow' + str(i), calculations['radialPeriLubow'])
             np.save(self.outputDir + '/radialDens' + str(i), calculations['radialDens'])
             np.save(self.outputDir + '/diskEccMK' + str(i), calculations['diskEccMK'])
             np.save(self.outputDir + '/diskPeriMK' + str(i), calculations['diskPeriMK'])
-            np.save(self.outputDir + '/diskEccLubow' + str(i), calculations['diskEccLubow'])
-            np.save(self.outputDir + '/diskPeriLubow' + str(i), calculations['diskPeriLubow'])
+            #np.save(self.outputDir + '/diskEccLubow' + str(i), calculations['diskEccLubow'])
+            #np.save(self.outputDir + '/diskPeriLubow' + str(i), calculations['diskPeriLubow'])
             np.save(self.outputDir + '/totalMass' + str(i), calculations['totalMass'])
 
             i += len(dens)
@@ -81,20 +81,6 @@ class FargoDiagnosticsRunner:
                 'arrayFilename': 'periMKVsTime.npy',
                 'yName': 'diskPeriMK',
                 'yLabel': 'Disk periastron angle (MK)',
-                'title': 'Disk periastron vs time'
-            },
-                        {
-                'fileFormat': '/diskEccLubow*.npy',
-                'arrayFilename': 'eccLubowVsTime.npy',
-                'yName': 'diskEccLubow',
-                'yLabel': 'Disk eccentricity (Lubow)',
-                'title': 'Disk eccentricity vs time'
-            },
-            {
-                'fileFormat': '/diskPeriLubow*.npy',
-                'arrayFilename': 'periLubowVsTime.npy',
-                'yName': 'diskPeriLubow',
-                'yLabel': 'Disk periastron angle (Lubow)',
                 'title': 'Disk periastron vs time'
             },
             {
