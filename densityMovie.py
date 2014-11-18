@@ -56,7 +56,7 @@ class FargoMovieMaker:
                 cur += 1
 
     def finish(self):
-        os.system("tar -zcvf animation.tar.gz " + self.outputDir + "/figs")
+        os.system("tar -zcvf " + self.outputDir + "/animation.tar.gz " + self.outputDir + "/figs")
 
 
 def main():
