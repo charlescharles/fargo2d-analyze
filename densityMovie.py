@@ -38,10 +38,9 @@ class FargoMovieMaker:
             ax.contourf(theta, r, np.log(dens[i]).transpose())
             ax.scatter([self.secondaryTheta[i]], [self.secondaryRadius[i]], s=150)
             ax.set_rmax(1.5)
-            ax.set_title(r'$\theta_{sec}=' + "{0:.2f}".format(self.secondaryTheta[i] % 6.283) + r'$ rad', va='bottom')
+            ax.set_title(r"$\theta_{sec}={0:.2f}$ rad".format(self.secondaryTheta[i] % 6.283), va='bottom')
             plt.savefig(self.outputDir + "/figs/dens" + str(i) + ".png")
             plt.close(fig)
-
 
 
 def main():
