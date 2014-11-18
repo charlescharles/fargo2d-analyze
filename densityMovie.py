@@ -6,13 +6,13 @@ import numpy as np
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-
+import os
 
 class FargoMovieMaker:
 
     def __init__(self, inputDir, outputDir, batchSize):
         self.outputDir = outputDir
-
+        self.batchSize = batchSize
         self.parser = FargoParser(inputDir, batchSize)
 
         secondaryOrbit = np.loadtxt(inputDir + "/planet0.dat")
@@ -26,21 +26,37 @@ class FargoMovieMaker:
         self.params = params
         self.outputDir = outputDir
 
-    def go(self):
-        dens, _, _ = self.parser.getNextBatch()
+    def go(self, start, end):
 
-        r, theta = np.meshgrid(self.params['radialIntervals'], self.params['thetaIntervals'])
-        plt.ioff()
-        #-- Plot... ------------------------------------------------
-        for i in range(100):
-            fig = plt.figure()
-            ax = plt.subplot(111, polar=True)
-            ax.contourf(theta, r, np.log(dens[i]).transpose())
-            ax.scatter([self.secondaryTheta[i]], [self.secondaryRadius[i]], s=150)
-            ax.set_rmax(1.5)
-            ax.set_title(r"$\theta_{sec}=" + "{0:.2f}$ rad".format(self.secondaryTheta[i] % 6.283), va='bottom')
-            plt.savefig(self.outputDir + "/figs/dens" + str(i) + ".png")
-            plt.close(fig)
+        start = (start / self.batchSize) * self.batchSize
+        end = (end / self.batchSize + 1) * self.batchSize
+        cur = 0
+
+        # skip to the start
+        for _ in range(start / self.batchSize):
+            cur += self.batchSize
+            self.parser.getNextBatch()
+
+        for _ in range((end - start) / self.batchSize):
+            dens, _, _ = self.parser.getNextBatch()
+
+            r, theta = np.meshgrid(self.params['radialIntervals'], self.params['thetaIntervals'])
+            plt.ioff()
+            #-- Plot... ------------------------------------------------
+            for i in range(100):
+                fig = plt.figure()
+                ax = plt.subplot(111, polar=True)
+                ax.contourf(theta, r, np.log(dens[i]).transpose())
+                ax.scatter([self.secondaryTheta[cur]], [self.secondaryRadius[cur]], s=150)
+                ax.set_rmax(1.5)
+                ax.set_title(r"$\theta_{sec}=" + "{0:.2f}$ rad".format(self.secondaryTheta[cur] % 6.283), va='bottom')
+                plt.savefig(self.outputDir + "/figs/dens" + str(cur) + ".png")
+                plt.close(fig)
+
+                cur += 1
+
+    def finish(self):
+        os.system("tar -zcvf animation.tar.gz " + self.outputDir + "/figs")
 
 
 def main():
@@ -50,6 +66,12 @@ def main():
 
     optParser.add_option('-b', '--batchsize', action='store',
                          type='int', dest='batchSize', default=100)
+
+    optParser.add_option('-s', '--start', action='store',
+                         type='int', dest='startIndex', default=0)
+
+    optParser.add_option('-e', '--end', action='store',
+                         type='int', dest='endIndex', default=100)
     
     optParser.add_option('-o', '--outputdirectory', action='store',
                          type='string', dest='outputDirectory')
@@ -60,7 +82,8 @@ def main():
         optParser.error('you must specify an input directory with -i or --inputdirectory')
 
     movies = FargoMovieMaker(options.inputDirectory, options.outputDirectory, options.batchSize)
-    movies.go()
+    movies.go(options.startIndex, options.endIndex)
+    movies.finish()
 
 if __name__ == '__main__':
     main()
