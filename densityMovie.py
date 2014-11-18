@@ -1,12 +1,10 @@
 __author__ = 'cguo'
 
 from fargoParser import FargoParser
-from fargoPlotter import FargoPlotter
 from optparse import OptionParser
-import fargoDiagnostics as fd
 import numpy as np
-import glob
 import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 
@@ -56,9 +54,6 @@ def main():
     
     optParser.add_option('-o', '--outputdirectory', action='store',
                          type='string', dest='outputDirectory')
-
-    optParser.add_option('-p', '--plotdirectory', action='store',
-                         type='string', dest='plotDirectory')
 
     (options, args) = optParser.parse_args()
 
