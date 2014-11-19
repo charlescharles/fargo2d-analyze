@@ -129,7 +129,7 @@ def main():
     if not options.inputDirectory:
         optParser.error('you must specify an input directory with -i or --inputdirectory')
 
-    runner = FargoDiagnosticsRunner(options.inputDirectory, options.outputDirectory, options.plotDirectory, 100)
+    runner = FargoDiagnosticsRunner(options.inputDirectory, options.outputDirectory, options.plotDirectory, options.batchSize)
     if not options.diskOnly:
         runner.runBatches()
     runner.runDiskTime()
