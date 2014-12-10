@@ -107,6 +107,7 @@ class FargoParser:
         arrays = []
         for path in self.sortedPaths[varType][startIndex : endIndex]:
             arr = np.fromfile(path, dtype='double')
+            print arr.shape
             arr.shape = (self.numRadialIntervals, self.numThetaIntervals)
             arrays.append(arr)
 
