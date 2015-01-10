@@ -68,8 +68,9 @@ def _computeCellDiagnostics(radialIntervals, thetaIntervals, vr, vtheta):
 
     # numTimeIntervals x numRadialIntervals x numThetaIntervals
     r = _radialBroadcast(radialIntervals, numThetaIntervals, numTimeIntervals)
+    
     theta = _thetaBroadcast(thetaIntervals, numRadialIntervals, numTimeIntervals)
-
+    
     # r * v_theta
     r_vtheta = np.multiply(r, vtheta)
 
@@ -127,7 +128,6 @@ def diskMassAverage(arr, density, radialIntervals, numThetaIntervals):
 
     return np.divide(weightedSum, totalMass)
 
-
 def radialDiskMassAverage(arr, radialDens, radialIntervals, totalMass):
     arr = arr[:, 1:]
     radialDens = radialDens[:, 1:]
@@ -138,30 +138,29 @@ def radialDiskMassAverage(arr, radialDens, radialIntervals, totalMass):
     delta_r_mat = np.array(delta_r * numTimeIntervals)
     r_mat = np.array(radialIntervals[1:] * numTimeIntervals)
     r_delta_r = np.multiply(delta_r_mat, r_mat)
-
-    weightedArr = np.multiply(np.multiply(np.multiply(arr, radialDens), 2 * math.pi), r_mat)
-
-    weightedSum = np.multiply(weightedArr, delta_r).sum(1)
-
+    
+    weighted = np.multiply(radialDens, arr)
+    
+    weightedSum = np.multiply(r_delta_r, weighted).sum(1)
+    
     return np.divide(weightedSum, totalMass)
-
 
 def computeTotalMass(dens, radialIntervals, numThetaIntervals):
     dens = dens[:, 1:, :]
-    
     numUsedTimeIntervals = len(dens)
-
+    
+    d_theta = 2.*math.pi / numThetaIntervals
+    
+    sum_theta = dens.sum(2) * d_theta
+    
     delta_r = np.ediff1d(radialIntervals)
-
-    delta_r_mat = _radialBroadcast(delta_r, numThetaIntervals, numUsedTimeIntervals)
-    r_mat = _radialBroadcast(radialIntervals[1:], numThetaIntervals, numUsedTimeIntervals)
-
-    r_delta_r = np.multiply(delta_r_mat, r_mat)
-
-    totalMass = np.multiply(np.multiply(r_delta_r, dens).sum(1).sum(1), 2 * math.pi)
-
-    return totalMass
-
+    
+    dr_mat = np.array([delta_r] * numUsedTimeIntervals)
+    r_mat = np.array([radialIntervals[1:]] * numUsedTimeIntervals)
+    
+    r_dr = np.multiply(dr_mat, r_mat)
+    
+    return np.multiply(r_dr, sum_theta).sum(1)
 
 def computeDiagnostics(radialIntervals, thetaIntervals, dens, vr, vtheta):
     diags = _computeCellDiagnostics(radialIntervals, thetaIntervals, vr, vtheta)
@@ -175,9 +174,10 @@ def computeDiagnostics(radialIntervals, thetaIntervals, dens, vr, vtheta):
     diskEccMK = diskMassAverage(diags['cellEccentricity'], dens, radialIntervals, len(thetaIntervals))
     diskPeriMK = diskMassAverage(diags['cellPeriastron'], dens, radialIntervals, len(thetaIntervals))
 
-    radialDens = np.average(dens, 2)
+    numThetaIntervals = len(thetaIntervals)
+    radialDens = np.multiply(2.0*math.pi/numThetaIntervals, d.sum(2))
 
-    totalMass = computeTotalMass(dens, radialIntervals, len(thetaIntervals))
+    totalMass = computeTotalMass(dens, radialIntervals, numThetaIntervals)
 
     diskEccLubow = radialDiskMassAverage(radialEccLubow, radialDens, radialIntervals, totalMass)
     diskPeriLubow = radialDiskMassAverage(radialPeriLubow, radialDens, radialIntervals, totalMass)
