@@ -23,8 +23,12 @@ class FargoPlotter:
         self.timeLabel = timeLabel
 
         plt.ioff()
-        plt.rcParams['figure.figsize'] = 7, 11
 
+    def _setFigsize(self, size):
+        plt.rcParams['figure.figsize'] = size
+
+    def _resetFigsize(self):
+        self._setFigsize((8, 6))
 
     def _pathTo(self, fileName):
         if not fileName.startswith('/'):
@@ -33,8 +37,8 @@ class FargoPlotter:
 
 
     def threePanelVsRadius(self, density, eccMK, eccLubow, periMK, periLubow, time, fname, index):
-        print "logdens size: " + str(len(density))
-        print "radialint size: " + str(len(self.radialIntervals))
+        self._setFigsize((7, 11))
+
         logDensity = np.log10(density)
         fig = plt.figure()
 
@@ -64,6 +68,33 @@ class FargoPlotter:
         print "saving 3-panel figure with name " + fname
         plt.savefig(fname)
         plt.close(fig)
+
+        self._resetFigsize()
+
+    def twoPanelVsTime(self, ecc, peri, fname):
+        self._setFigsize((8, 12))
+
+        fig = plt.figure()
+
+        usedTimes = self.timeIntervals[:len(ecc)]
+
+        plt.subplot(2, 1, 1)
+        plt.plot(usedTimes, ecc)
+        plt.xlabel(self.timeLabel)
+        self.ylabel("Eccentricity")
+
+        plt.subplot(2, 1, 2)
+        plt.plot(usedTimes, peri)
+        plt.xlabel(self.timeLabel)
+        self.ylabel("Periastron")
+
+        fname = self._pathTo(fname + '.png')
+
+        print "saving 2-panel figure with name " + fname
+        plt.savefig(fname)
+        plt.close(fig)
+
+        self._resetFigsize()
 
 
     def vsRadius(self, array, yName='', yDisplayLabel='', title='', index='', ylim=None):
