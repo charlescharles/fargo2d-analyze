@@ -84,6 +84,20 @@ class FargoDiagnosticsRunner:
                 'title': 'Disk periastron vs time'
             },
             {
+                'fileFormat': '/diskEccLubow*.npy',
+                'arrayFilename': 'eccLubowVsTime.npy',
+                'yName': 'diskEccLubow',
+                'yLabel': 'Disk eccentricity (Lubow)',
+                'title': 'Disk eccentricity vs time'
+            },
+            {
+                'fileFormat': '/diskPeriLubow*.npy',
+                'arrayFilename': 'periLubowVsTime.npy',
+                'yName': 'diskPeriLubow',
+                'yLabel': 'Disk periastron angle (Lubow)',
+                'title': 'Disk periastron vs time'
+            },
+            {
                 'fileFormat': '/totalMass*.npy',
                 'arrayFilename': 'massVsTime.npy',
                 'yName': 'totalMass',
