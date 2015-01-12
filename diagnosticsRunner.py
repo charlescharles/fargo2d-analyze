@@ -54,14 +54,14 @@ class FargoDiagnosticsRunner:
                                                 "%.1f" % ((i + j)/5.0), 'threePanel', i + j)
 
             np.save(self.outputDir + '/radialEccMK' + str(i), calculations['radialEccMK'])
-            #np.save(self.outputDir + '/radialEccLubow' + str(i), calculations['radialEccLubow'])
+            np.save(self.outputDir + '/radialEccLubow' + str(i), calculations['radialEccLubow'])
             np.save(self.outputDir + '/radialPeriMK' + str(i), calculations['radialPeriMK'])
-            #np.save(self.outputDir + '/radialPeriLubow' + str(i), calculations['radialPeriLubow'])
+            np.save(self.outputDir + '/radialPeriLubow' + str(i), calculations['radialPeriLubow'])
             np.save(self.outputDir + '/radialDens' + str(i), calculations['radialDens'])
             np.save(self.outputDir + '/diskEccMK' + str(i), calculations['diskEccMK'])
             np.save(self.outputDir + '/diskPeriMK' + str(i), calculations['diskPeriMK'])
-            #np.save(self.outputDir + '/diskEccLubow' + str(i), calculations['diskEccLubow'])
-            #np.save(self.outputDir + '/diskPeriLubow' + str(i), calculations['diskPeriLubow'])
+            np.save(self.outputDir + '/diskEccLubow' + str(i), calculations['diskEccLubow'])
+            np.save(self.outputDir + '/diskPeriLubow' + str(i), calculations['diskPeriLubow'])
             np.save(self.outputDir + '/totalMass' + str(i), calculations['totalMass'])
 
             i += len(dens)
