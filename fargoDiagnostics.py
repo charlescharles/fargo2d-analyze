@@ -171,10 +171,10 @@ def computeDiagnostics(radialIntervals, thetaIntervals, dens, vr, vtheta):
     radialEccLubow = lubowDiagnostics['radialEccLubow']
     radialPeriLubow = lubowDiagnostics['radialPeriLubow']
 
-    diskEccMK = diskMassAverage(diags['cellEccentricity'], dens, radialIntervals, len(thetaIntervals))
-    diskPeriMK = diskMassAverage(diags['cellPeriastron'], dens, radialIntervals, len(thetaIntervals))
-
     numThetaIntervals = len(thetaIntervals)
+    diskEccMK = diskMassAverage(diags['cellEccentricity'], dens, radialIntervals, numThetaIntervals)
+    diskPeriMK = diskMassAverage(diags['cellPeriastron'], dens, radialIntervals, numThetaIntervals)
+
     radialDens = np.multiply(2.0*math.pi/numThetaIntervals, dens.sum(2))
 
     totalMass = computeTotalMass(dens, radialIntervals, numThetaIntervals)
