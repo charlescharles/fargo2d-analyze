@@ -71,8 +71,7 @@ class FargoParser:
         self.radialIntervals = np.multiply((2.0 / 3.0), ((cube(r1) - cube(r0)) / (square(r1) - square(r0))))
         self.numRadialIntervals = len(self.radialIntervals)
 
-        dtheta = 2 * math.pi/self.numThetaIntervals
-        self.thetaIntervals = np.arange(0, 2*math.pi + (dtheta/2), dtheta)[:self.numThetaIntervals]
+        self.thetaIntervals = np.linspace(0, 2*math.pi, num=self.numThetaIntervals)
 
         planetData = np.loadtxt(self._pathTo("orbit0.dat"))
         self.timeIntervals = planetData[:, 0]

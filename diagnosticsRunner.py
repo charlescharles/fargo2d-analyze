@@ -24,7 +24,7 @@ class FargoDiagnosticsRunner:
 
         self.outputDir = outputDir
 
-        self.plotter = FargoPlotter(radIntervals, timeIntervals, plotDir, 'Radius, AU', 'Time, binary periods')
+        self.plotter = FargoPlotter(radIntervals * 20.0, timeIntervals, plotDir, 'Radius, AU', 'Time, binary periods')
 
     def runBatches(self):
         i = 0
