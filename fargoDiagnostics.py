@@ -175,7 +175,7 @@ def computeDiagnostics(radialIntervals, thetaIntervals, dens, vr, vtheta):
     diskPeriMK = diskMassAverage(diags['cellPeriastron'], dens, radialIntervals, len(thetaIntervals))
 
     numThetaIntervals = len(thetaIntervals)
-    radialDens = np.multiply(2.0*math.pi/numThetaIntervals, d.sum(2))
+    radialDens = np.multiply(2.0*math.pi/numThetaIntervals, dens.sum(2))
 
     totalMass = computeTotalMass(dens, radialIntervals, numThetaIntervals)
 
