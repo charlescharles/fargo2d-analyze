@@ -110,14 +110,12 @@ class FargoDiagnosticsRunner:
             filePaths = glob.glob(self.outputDir + type['fileFormat'])
             sortedPaths = sorted(filePaths, key=self.parser._extractFileIndex)
 
-            arrays = []
-            for path in sortedPaths:
-                arrays.append(np.load(path))
+            arrays = [np.load(path) for path in sortedPaths]
             vsTime = np.concatenate(arrays)
-            arrays = None
 
             np.save(self.outputDir + '/' + type['arrayFilename'], vsTime)
 
+            print "plotting vs time " + type['yName']
             self.plotter.vsTime(vsTime, type['yName'], type['yLabel'], type['title'])
 
 

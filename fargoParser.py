@@ -87,7 +87,7 @@ class FargoParser:
 
 
     def _extractFileIndex(self, filePath):
-        print 'extracting file index from ' + filePath
+        logging.info('extracting file index from ' + filePath)
         name = filePath.split('/')[-1]
         return int(re.search('[0-9]+', name).group(0))
 
@@ -107,13 +107,15 @@ class FargoParser:
         arrays = []
         for path in self.sortedPaths[varType][startIndex : endIndex]:
             arr = np.fromfile(path, dtype='double')
-            print arr.shape
             arr.shape = (self.numRadialIntervals, self.numThetaIntervals)
             arrays.append(arr)
 
             logging.info("parsed gas output file: " + path.split('/')[-1])
+            logging.info("with shape: " + str(arr.shape))
 
         ret = np.array(arrays)
+
+
 
         return ret
 

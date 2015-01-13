@@ -98,9 +98,6 @@ class FargoPlotter:
 
 
     def vsRadius(self, array, yName='', yDisplayLabel='', title='', index='', ylim=None):
-        print len(array)
-        print len(self.radialIntervals)
-
         fig = plt.figure()
         plt.plot(self.radialIntervals, array)
         plt.xlabel(self.radialLabel)
