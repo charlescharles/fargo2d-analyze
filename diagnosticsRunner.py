@@ -30,7 +30,7 @@ class FargoDiagnosticsRunner:
         i = 0
         while self.parser.hasRemainingBatches():
             dens, vrad, vtheta = self.parser.getNextBatch()
-            calculations = fd.computeDiagnostics(self.params['radialIntervals'],
+            calculations = fd.computeDiagnostics(self.params['radialEdges'], self.params['radialIntervals'],
                                                              self.params['thetaIntervals'], dens, vrad, vtheta)
             for j in range(0, len(dens), 20):
                 print 'plotting'

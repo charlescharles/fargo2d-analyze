@@ -68,6 +68,7 @@ class FargoParser:
         cube = lambda x: np.power(x, 3)
         square = np.square
 
+        self.radialEdges = radialEdges
         self.radialIntervals = np.multiply((2.0 / 3.0), ((cube(r1) - cube(r0)) / (square(r1) - square(r0))))
         self.numRadialIntervals = len(self.radialIntervals)
 
@@ -80,7 +81,7 @@ class FargoParser:
         self.totalNumOutputs = len(filePaths)
 
         paramNames = ['numRadialIntervals', 'numThetaIntervals', 'radialIntervals', 'thetaIntervals',
-                      'timeIntervals', 'maxRadius', 'totalNumOutputs']
+                      'timeIntervals', 'maxRadius', 'totalNumOutputs', 'radialEdges']
 
         self.params = dict((paramName, getattr(self, paramName)) for paramName in paramNames)
 
