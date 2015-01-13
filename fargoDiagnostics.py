@@ -128,22 +128,21 @@ def diskMassAverage(arr, density, radialIntervals, numThetaIntervals):
     return np.divide(weightedSum, totalMass)
 
 def radialDiskMassAverage(arr, dens, radialEdges, radialIntervals, numThetaIntervals):
-    numTimeIntervals = len(radialDens)
+    numUsedTimeIntervals = len(dens)
 
-    delta_theta = 2 * math.pi/numThetaIntervals
+    d_theta = 2.*math.pi / numThetaIntervals
+
+    sumRadialDens = dens.sum(2) * d_theta
+    sumRadialWeights = np.multiply(sumRadialDens, arr)
 
     delta_r = np.ediff1d(radialEdges)
-    delta_r_mat = np.array(delta_r * numTimeIntervals)
-    r_mat = np.array(radialIntervals * numTimeIntervals)
-    r_delta_r = np.multiply(delta_r_mat, r_mat)
 
-    r_dr_dt =
-    
-    weighted = np.multiply(radialDens, arr)
-    
-    weightedSum = np.multiply(r_delta_r, weighted).sum(1)
-    
-    return np.divide(weightedSum, totalMass)
+    dr_mat = np.array([delta_r] * numUsedTimeIntervals)
+    r_mat = np.array([radialIntervals] * numUsedTimeIntervals)
+
+    r_dr = np.multiply(dr_mat, r_mat)
+
+    return np.multiply(r_dr, sumRadialWeights).sum(1)
 
 def computeTotalMass(dens, radialEdges, radialIntervals, numThetaIntervals):
     numUsedTimeIntervals = len(dens)
@@ -178,12 +177,12 @@ def computeDiagnostics(radialEdges, radialIntervals, thetaIntervals, dens, vr, v
 
     totalMass = computeTotalMass(dens, radialEdges, radialIntervals, numThetaIntervals)
 
-    diskEccLubow = radialDiskMassAverage(radialEccLubow, radialDens, radialEdges, radialIntervals, totalMass)
-    diskPeriLubow = radialDiskMassAverage(radialPeriLubow, radialDens, radialEdges, radialIntervals, totalMass)
+    diskEccLubow = radialDiskMassAverage(radialPeriLubow, dens, radialEdges, radialIntervals, numThetaIntervals)
+    diskPeriLubow = radialDiskMassAverage(radialPeriLubow, dens, radialEdges, radialIntervals, numThetaIntervals)
 
-    diskEccMK = radialDiskMassAverage(radialEccMK, radialDens, radialEdges, radialIntervals, totalMass)
+    diskEccMK = radialDiskMassAverage(radialEccMK, dens, radialEdges, radialIntervals, numThetaIntervals)
 
-    m = radialDiskMassAverage(1.0, radialDens, radialEdges, radialIntervals, totalMass)
+    m = radialDiskMassAverage(1.0, dens, radialEdges, radialIntervals, numThetaIntervals)
     print "totalmass: " + str(totalMass)
     print "avged mass: " + str(m)
 
