@@ -27,11 +27,13 @@ class FargoDiagnosticsRunner:
         self.plotter = FargoPlotter(radIntervals * 20.0, timeIntervals, plotDir, 'Radius, AU', 'Time, binary periods')
 
     def _getDiagnostic(self, format):
+        print "getting diagnostic for format " + format
 
         filePaths = glob.glob(self.outputDir + format)
         sortedPaths = sorted(filePaths, key=self.parser._extractFileIndex)
 
         arrays = [np.load(path) for path in sortedPaths]
+        print "found " + str(len(arrays)) + " result arrays"
         return np.concatenate(arrays)
 
     def runBatches(self):
