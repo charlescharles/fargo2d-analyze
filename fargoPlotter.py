@@ -79,6 +79,7 @@ class FargoPlotter:
         usedTimes = self.timeIntervals[:len(ecc)]
 
         plt.subplot(2, 1, 1)
+        plt.title('Disk eccentricity and periastron angle vs. time')
         plt.plot(usedTimes, ecc)
         plt.xlabel(self.timeLabel)
         plt.ylabel("Eccentricity")
@@ -88,7 +89,7 @@ class FargoPlotter:
         plt.xlabel(self.timeLabel)
         plt.ylabel("Periastron")
 
-        fname = self._pathTo(fname + '.png')
+        fname = self._pathTo(fname)
 
         print "saving 2-panel figure with name " + fname
         plt.savefig(fname + '.png')
