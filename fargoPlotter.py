@@ -81,12 +81,12 @@ class FargoPlotter:
         plt.subplot(2, 1, 1)
         plt.plot(usedTimes, ecc)
         plt.xlabel(self.timeLabel)
-        self.ylabel("Eccentricity")
+        plt.ylabel("Eccentricity")
 
         plt.subplot(2, 1, 2)
         plt.plot(usedTimes, peri)
         plt.xlabel(self.timeLabel)
-        self.ylabel("Periastron")
+        plt.ylabel("Periastron")
 
         fname = self._pathTo(fname + '.png')
 
