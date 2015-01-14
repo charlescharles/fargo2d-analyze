@@ -114,15 +114,21 @@ class FargoDiagnosticsRunner:
             }
         ]
 
+        diags = {}
+
         for type in diagnosticTypes:
             diag = self._getDiagnostic(type['fileFormat'])
+            diags[type['yName']] = diag
+
             np.save(self.outputDir + '/' + type['arrayFilename'], diag)
 
+        for type in diagnosticTypes:
+            diag = diags[type['yName']]
             print "plotting vs time " + type['yName']
             self.plotter.vsTime(diag, type['yName'], type['yLabel'], type['title'])
 
-        eccMK = self._getDiagnostic('/diskEccMK*.npy')
-        periMK = self._getDiagnostic('/diskPeriMK*.npy')
+        eccMK = diags['diskEccMK']
+        periMK = diags['diskPeriMK']
         print "plotting twopanel vs time"
         self.plotter.twoPanelVsTime(eccMK, periMK, "eccPeriMK_vs_time")
 
