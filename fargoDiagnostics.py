@@ -177,10 +177,10 @@ def computeDiagnostics(radialEdges, radialIntervals, thetaIntervals, dens, vr, v
 
     totalMass = computeTotalMass(dens, radialEdges, radialIntervals, numThetaIntervals)
 
-    diskEccLubow = radialDiskMassAverage(radialPeriLubow, dens, radialEdges, radialIntervals, numThetaIntervals)
+    diskEccLubow = radialDiskMassAverage(radialEccLubow, dens, radialEdges, radialIntervals, numThetaIntervals)
     diskPeriLubow = radialDiskMassAverage(radialPeriLubow, dens, radialEdges, radialIntervals, numThetaIntervals)
 
-    diskEccMK = radialDiskMassAverage(radialEccMK, dens, radialEdges, radialIntervals, numThetaIntervals)
+    #diskEccMK = radialDiskMassAverage(radialEccMK, dens, radialEdges, radialIntervals, numThetaIntervals)
 
     m = radialDiskMassAverage(1.0, dens, radialEdges, radialIntervals, numThetaIntervals)
     print "totalmass: " + str(totalMass)

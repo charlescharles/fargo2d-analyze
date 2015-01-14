@@ -91,7 +91,7 @@ class FargoPlotter:
         fname = self._pathTo(fname + '.png')
 
         print "saving 2-panel figure with name " + fname
-        plt.savefig(fname)
+        plt.savefig(fname + '.png')
         plt.close(fig)
 
         self._resetFigsize()
