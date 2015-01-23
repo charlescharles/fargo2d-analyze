@@ -46,7 +46,7 @@ class FargoMovieMaker:
             for i in range(100):
                 fig = plt.figure()
                 ax = plt.subplot(111, polar=True)
-                ax.contourf(theta, r, np.log(dens[i]).transpose())
+                ax.contourf(theta, r, np.log(dens[i]).transpose(), cmap=plt.cm.afmhot)
                 ax.scatter([self.secondaryTheta[cur]], [self.secondaryRadius[cur]], s=150)
                 ax.set_rmax(1.5)
                 ax.set_title(r"$\theta_{sec}=" + "{0:.2f}$ rad".format(self.secondaryTheta[cur] % 6.283), va='bottom')
