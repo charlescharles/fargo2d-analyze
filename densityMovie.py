@@ -36,16 +36,14 @@ class FargoMovieMaker:
         for _ in range(start / self.batchSize):
             cur += self.batchSize
             self.parser.getNextBatch()
-            
-        scaledRadii = 20 * self.params['radialIntervals']
 
         for _ in range((end - start) / self.batchSize):
             dens, _, _ = self.parser.getNextBatch()
 
-            r, theta = np.meshgrid(scaledRadii, self.params['thetaIntervals'])
+            r, theta = np.meshgrid(self.params['radialIntervals'], self.params['thetaIntervals'])
             plt.ioff()
             #-- Plot... ------------------------------------------------
-            for i in range(100):
+            for i in range(self.batchSize):
                 fig = plt.figure()
                 ax = plt.subplot(111, polar=True)
                 ax.contourf(theta, r, np.log(dens[i]).transpose(), cmap=plt.cm.afmhot)
