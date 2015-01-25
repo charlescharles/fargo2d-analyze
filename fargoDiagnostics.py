@@ -173,7 +173,7 @@ def computeDiagnostics(radialEdges, radialIntervals, thetaIntervals, dens, vr, v
     diskEccMK = diskMassAverage(diags['cellEccentricity'], dens, radialIntervals, numThetaIntervals)
     diskPeriMK = diskMassAverage(diags['cellPeriastron'], dens, radialIntervals, numThetaIntervals)
 
-    radialDens = 2.0 * math.pi / numThetaIntervals * dens.sum(2)
+    radialDens = 2.0 * radialIntervals * math.pi / numThetaIntervals * dens.sum(2)
 
     totalMass = computeTotalMass(dens, radialEdges, radialIntervals, numThetaIntervals)
 
