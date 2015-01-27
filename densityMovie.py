@@ -43,7 +43,7 @@ class FargoMovieMaker:
             r, theta = np.meshgrid(self.params['radialIntervals'], self.params['thetaIntervals'])
             plt.ioff()
             #-- Plot... ------------------------------------------------
-            for i in range(self.batchSize):
+            for i in range(len(dens)):
                 fig = plt.figure()
                 ax = plt.subplot(111, polar=True)
                 ax.contourf(theta, r, np.log(dens[i]).transpose(), cmap=plt.cm.afmhot)
