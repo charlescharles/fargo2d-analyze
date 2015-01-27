@@ -64,7 +64,7 @@ def _fourierRadialDiagnostics(dens):
     ft = np.squeeze(ft)
 
     ecc = np.absolute(ft)
-    peri = ft.imag / ft.real
+    peri = np.atan2(ft.imag, ft.real)
 
     return {
         "radialEccFourier" : ecc,
