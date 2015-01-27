@@ -59,6 +59,18 @@ def _lubowDiagnostics(radialIntervals, thetaIntervals, dens, vr, vtheta):
         "radialPeriLubow": peri
     }
 
+def _fourierRadialDiagnostics(dens):
+    ft = np.fft.rfft(dens)[:, :, 1]
+    ft = np.squeeze(ft)
+
+    ecc = np.absolute(ft)
+    peri = ft.imag / ft.real
+
+    return {
+        "radialEccFourier" : ecc,
+        "radialPeriFourier": peri
+    }
+
 
 def _computeCellDiagnostics(radialIntervals, thetaIntervals, vr, vtheta):
     numRadialIntervals = len(radialIntervals)
@@ -142,7 +154,11 @@ def radialDiskMassAverage(arr, dens, radialEdges, radialIntervals, numThetaInter
 
     r_dr = np.multiply(dr_mat, r_mat)
 
-    return np.multiply(r_dr, sumRadialWeights).sum(1)
+    weighted = np.multiply(r_dr, sumRadialWeights).sum(1)
+
+    totalMass = np.multiply(r_dr, sumRadialDens).sum(1)
+
+    return np.divide(weighted, totalMass)
 
 def computeTotalMass(dens, radialEdges, radialIntervals, numThetaIntervals):
     numUsedTimeIntervals = len(dens)
@@ -173,14 +189,19 @@ def computeDiagnostics(radialEdges, radialIntervals, thetaIntervals, dens, vr, v
     diskEccMK = diskMassAverage(diags['cellEccentricity'], dens, radialIntervals, numThetaIntervals)
     diskPeriMK = diskMassAverage(diags['cellPeriastron'], dens, radialIntervals, numThetaIntervals)
 
+    fourierDiagnostics = _fourierRadialDiagnostics(dens)
+    radialEccFourier = fourierDiagnostics['radialEccFourier']
+    radialPeriFourier = fourierDiagnostics['radialPeriFourier']
+
+    diskEccFourier = radialDiskMassAverage(radialEccFourier, dens, radialEdges, radialIntervals, numThetaIntervals)
+    diskPeriFourier = radialDiskMassAverage(radialPeriFourier, dens, radialEdges, radialIntervals, numThetaIntervals)
+
     radialDens = 2.0 * radialIntervals * math.pi / numThetaIntervals * dens.sum(2)
 
     totalMass = computeTotalMass(dens, radialEdges, radialIntervals, numThetaIntervals)
 
     diskEccLubow = radialDiskMassAverage(radialEccLubow, dens, radialEdges, radialIntervals, numThetaIntervals)
     diskPeriLubow = radialDiskMassAverage(radialPeriLubow, dens, radialEdges, radialIntervals, numThetaIntervals)
-
-    #diskEccMK = radialDiskMassAverage(radialEccMK, dens, radialEdges, radialIntervals, numThetaIntervals)
 
     m = radialDiskMassAverage(1.0, dens, radialEdges, radialIntervals, numThetaIntervals)
     print "totalmass: " + str(totalMass)
@@ -191,10 +212,15 @@ def computeDiagnostics(radialEdges, radialIntervals, thetaIntervals, dens, vr, v
         "radialPeriMK": radialPeriMK,
         "radialEccLubow": radialEccLubow,
         "radialPeriLubow": radialPeriLubow,
+        "radialEccFourier": radialEccFourier,
+        "radialPeriFourier": radialPeriFourier,
+
         "radialDens": radialDens,
         "diskEccMK": diskEccMK,
         "diskPeriMK": diskPeriMK,
         "diskEccLubow": diskEccLubow,
         "diskPeriLubow": diskPeriLubow,
+        "diskEccFourier": diskEccFourier,
+        "diskPeriFourier": diskPeriFourier,
         "totalMass": totalMass
     }
