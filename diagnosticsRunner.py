@@ -44,7 +44,7 @@ class FargoDiagnosticsRunner:
             calculations = fd.computeDiagnostics(self.params['radialEdges'], self.params['radialIntervals'],
                                                              self.params['thetaIntervals'], dens, vrad, vtheta)
 
-            avgDens = np.average(dens, axis=1)
+            avgDens = np.average(dens, axis=2)
 
             for j in range(0, len(dens), 20):
                 print 'plotting'
