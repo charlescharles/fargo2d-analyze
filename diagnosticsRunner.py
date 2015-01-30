@@ -43,11 +43,14 @@ class FargoDiagnosticsRunner:
             dens, vrad, vtheta = self.parser.getNextBatch()
             calculations = fd.computeDiagnostics(self.params['radialEdges'], self.params['radialIntervals'],
                                                              self.params['thetaIntervals'], dens, vrad, vtheta)
+
+            avgDens = np.average(dens, axis=1)
+
             for j in range(0, len(dens), 20):
                 print 'plotting'
                 print "length of radialDens: " + str(len(calculations['radialDens']))
 
-                self.plotter.threePanelVsRadius(calculations['radialDens'][j],
+                self.plotter.threePanelVsRadius(avgDens[j],
                                                 calculations['radialEccMK'][j], calculations['radialEccLubow'][j],
                                                 calculations['radialPeriMK'][j], calculations['radialPeriLubow'][j],
                                                 "%.1f" % ((i + j)/5.0), 'threePanel', i + j)

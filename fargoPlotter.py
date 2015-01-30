@@ -46,7 +46,7 @@ class FargoPlotter:
         plt.subplot(3, 1, 1)
         plt.loglog(self.radialIntervals, density)
         plt.xlabel(self.radialLabel)
-        plt.ylabel('log(density)')
+        plt.ylabel('density')
 
         plt.subplot(3, 1, 2)
         plt.semilogx(self.radialIntervals, eccMK, 'k', label="Mueller-Kley")
