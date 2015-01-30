@@ -39,26 +39,25 @@ class FargoPlotter:
     def threePanelVsRadius(self, density, eccMK, eccLubow, periMK, periLubow, time, fname, index):
         self._setFigsize((7, 11))
 
-        logDensity = np.log10(density)
         fig = plt.figure()
 
         fig.suptitle(time + " binary periods")
 
         plt.subplot(3, 1, 1)
-        plt.plot(self.radialIntervals, logDensity)
+        plt.loglog(self.radialIntervals, density)
         plt.xlabel(self.radialLabel)
         plt.ylabel('log(density)')
 
         plt.subplot(3, 1, 2)
-        plt.plot(self.radialIntervals, eccMK, 'k', label="Mueller-Kley")
-        plt.plot(self.radialIntervals, eccLubow, 'k--', label="Lubow")
+        plt.semilogx(self.radialIntervals, eccMK, 'k', label="Mueller-Kley")
+        plt.semilogx(self.radialIntervals, eccLubow, 'k--', label="Lubow")
         plt.xlabel(self.radialLabel)
         plt.ylabel('Eccentricity')
         plt.legend(loc='upper right')
 
         plt.subplot(3, 1, 3)
-        plt.plot(self.radialIntervals, periMK, 'k', label="Mueller-Kley")
-        plt.plot(self.radialIntervals, periLubow, 'k--', label="Lubow")
+        plt.semilogx(self.radialIntervals, periMK, 'k', label="Mueller-Kley")
+        plt.semilogx(self.radialIntervals, periLubow, 'k--', label="Lubow")
         plt.xlabel(self.radialLabel)
         plt.ylabel('Periastron')
         plt.legend(loc='upper right')
@@ -100,7 +99,7 @@ class FargoPlotter:
 
     def vsRadius(self, array, yName='', yDisplayLabel='', title='', index='', ylim=None):
         fig = plt.figure()
-        plt.plot(self.radialIntervals, array)
+        plt.semilogx(self.radialIntervals, array)
         plt.xlabel(self.radialLabel)
         plt.ylabel(yDisplayLabel)
         plt.title(title)
