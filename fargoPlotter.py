@@ -33,7 +33,8 @@ class FargoPlotter:
     def _pathTo(self, fileName):
         if not fileName.startswith('/'):
             return self.outputDir + '/' + fileName
-        return self.outputDir + fileName
+        return self.rbit
+        utputDir + fileName
 
 
     def threePanelVsRadius(self, density, eccMK, eccLubow, periMK, periLubow, time, fname, index):
@@ -52,6 +53,7 @@ class FargoPlotter:
         plt.semilogx(self.radialIntervals, eccMK, 'k', label="Mueller-Kley")
         plt.semilogx(self.radialIntervals, eccLubow, 'k--', label="Lubow")
         plt.xlabel(self.radialLabel)
+        plt.ylim((0, 1))
         plt.ylabel('Eccentricity')
         plt.legend(loc='upper right')
 
