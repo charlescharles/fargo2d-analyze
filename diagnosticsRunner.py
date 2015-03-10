@@ -41,7 +41,8 @@ class FargoDiagnosticsRunner:
         i = 0
         while self.parser.hasRemainingBatches():
             dens, vrad, vtheta = self.parser.getNextBatch()
-            calculations = fd.computeDiagnostics(self.params['radialEdges'], self.params['radialIntervals'],
+            calculations = fd.\
+                agnostics(self.params['radialEdges'], self.params['radialIntervals'],
                                                              self.params['thetaIntervals'], dens, vrad, vtheta)
 
             avgDens = np.average(dens, axis=2)
@@ -73,6 +74,9 @@ class FargoDiagnosticsRunner:
             np.save(self.outputDir + '/diskEccFourier' + str(i), calculations['diskEccFourier'])
             np.save(self.outputDir + '/diskPeriFourier' + str(i), calculations['diskPeriFourier'])
             np.save(self.outputDir + '/totalMass' + str(i), calculations['totalMass'])
+
+            np.save(self.outputDir + '/diskRadius90' + str(i), calculations['diskRad90'])
+            np.save(self.outputDir + '/diskRadius95' + str(i), calculations['diskRad95'])
 
             i += len(dens)
 
@@ -127,6 +131,20 @@ class FargoDiagnosticsRunner:
                 'yName': 'totalMass',
                 'yLabel': 'Disk mass (code units)',
                 'title': 'Disk mass vs time'
+            },
+            {
+                'fileFormat': '/diskRadius90*.npy',
+                'arrayFilename': 'diskRadius90.npy',
+                'yName': 'diskRadius90',
+                'yLabel': 'Disk radius (a, 90%)',
+                'title': 'Disk radius vs time'
+            },
+            {
+                'fileFormat': '/diskRadius95*.npy',
+                'arrayFilename': 'diskRadius95.npy',
+                'yName': 'diskRadius95',
+                'yLabel': 'Disk radius (a, 95%)',
+                'title': 'Disk radius vs time'
             }
         ]
 

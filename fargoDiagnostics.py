@@ -112,6 +112,32 @@ def _computeCellDiagnostics(radialIntervals, thetaIntervals, vr, vtheta):
         "cellPeriastron": cellPeriastron
         }
 
+def diskRadius(dens, radialIntervals):
+    nt, nr, ns = dens.shape
+    rmat = np.array([np.array([radialIntervals]* ns).transpose()] * nt)
+
+    weighted = (dens * rmat).sum(axis=2)
+    totals = weighted.sum(axis=1)
+
+    totalsMat = np.array([totals] * nr).transpose()
+
+    cumuWeights = np.cumsum(weighted, axis=1)
+
+    thresh = 0.9
+    threshWeights = thresh * totalsMat
+    diskRadiiIx = np.argmax(cumuWeights > threshWeights, axis=1)
+    diskRadii90 = radialIntervals[diskRadiiIx]
+
+    thresh = 0.95
+    threshWeights = thresh * totalsMat
+    diskRadiiIx = np.argmax(cumuWeights > threshWeights, axis=1)
+    diskRadii95 = radialIntervals[diskRadiiIx]
+
+    return {
+        "diskRadii90": diskRadii90,
+        "diskRadii95": diskRadii95
+    }
+
 
 def diskMassAverage(arr, density, radialIntervals, numThetaIntervals):
     """
@@ -203,6 +229,10 @@ def computeDiagnostics(radialEdges, radialIntervals, thetaIntervals, dens, vr, v
     diskEccLubow = radialDiskMassAverage(radialEccLubow, dens, radialEdges, radialIntervals, numThetaIntervals)
     diskPeriLubow = radialDiskMassAverage(radialPeriLubow, dens, radialEdges, radialIntervals, numThetaIntervals)
 
+    diskRadii = diskRadius(dens, radialIntervals)
+    diskRad90 = diskRadii['diskRadii90']
+    diskRad95 = diskRadii['diskRadii95']
+
     print "totalmass: " + str(totalMass)
 
     return {
@@ -220,5 +250,8 @@ def computeDiagnostics(radialEdges, radialIntervals, thetaIntervals, dens, vr, v
         "diskPeriLubow": diskPeriLubow,
         "diskEccFourier": diskEccFourier,
         "diskPeriFourier": diskPeriFourier,
-        "totalMass": totalMass
+        "totalMass": totalMass,
+
+        "diskRad90": diskRad90,
+        "diskRad95": diskRad95
     }
