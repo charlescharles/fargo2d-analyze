@@ -41,8 +41,7 @@ class FargoDiagnosticsRunner:
         i = 0
         while self.parser.hasRemainingBatches():
             dens, vrad, vtheta = self.parser.getNextBatch()
-            calculations = fd.\
-                agnostics(self.params['radialEdges'], self.params['radialIntervals'],
+            calculations = fd.computeDiagnostics(self.params['radialEdges'], self.params['radialIntervals'],
                                                              self.params['thetaIntervals'], dens, vrad, vtheta)
 
             avgDens = np.average(dens, axis=2)
