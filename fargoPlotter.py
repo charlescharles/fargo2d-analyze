@@ -53,7 +53,7 @@ class FargoPlotter:
         plt.semilogx(self.radialIntervals, eccMK, 'k', label="Mueller-Kley")
         plt.semilogx(self.radialIntervals, eccLubow, 'k--', label="Lubow")
         plt.xlabel(self.radialLabel)
-        plt.ylim((0, 1))
+        #plt.ylim((0, 1))
         plt.ylabel('Eccentricity')
         plt.legend(loc='upper right')
 
