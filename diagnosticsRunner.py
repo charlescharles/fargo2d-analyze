@@ -53,7 +53,7 @@ class FargoDiagnosticsRunner:
                 self.plotter.threePanelVsRadius(avgDens[j],
                                                 calculations['radialEccMK'][j], calculations['radialEccLubow'][j],
                                                 calculations['radialPeriMK'][j], calculations['radialPeriLubow'][j],
-                                                "%.1f" % ((i + j)/5.0), 'threePanelScaled', i + j)
+                                                "%.1f" % ((i + j)/5.0), 'threePanel', i + j)
 
             np.save(self.outputDir + '/radialEccMK' + str(i), calculations['radialEccMK'])
             np.save(self.outputDir + '/radialEccLubow' + str(i), calculations['radialEccLubow'])
