@@ -77,6 +77,9 @@ class FargoDiagnosticsRunner:
             np.save(self.outputDir + '/diskRadius90' + str(i), calculations['diskRad90'])
             np.save(self.outputDir + '/diskRadius95' + str(i), calculations['diskRad95'])
 
+            np.save(self.outputDir + '/diskMKEx' + str(i), calculations['diskMKEx'])
+            np.save(self.outputDir + '/diskMKEy' + str(i), calculations['diskMKEy'])
+
             i += len(dens)
 
 
@@ -144,6 +147,20 @@ class FargoDiagnosticsRunner:
                 'yName': 'diskRadius95',
                 'yLabel': 'Disk radius (a, 95%)',
                 'title': 'Disk radius vs time'
+            },
+            {
+                'fileFormat': '/diskMKEx*.npy',
+                'arrayFilename': 'diskMKEx.npy',
+                'yName': 'diskMKEx',
+                'yLabel': 'Disk MK e_x',
+                'title': 'Disk MK e_x'
+            },
+            {
+                'fileFormat': '/diskMKEy*.npy',
+                'arrayFilename': 'diskMKEy.npy',
+                'yName': 'diskMKEy',
+                'yLabel': 'Disk MK e_y',
+                'title': 'Disk MK e_y'
             }
         ]
 

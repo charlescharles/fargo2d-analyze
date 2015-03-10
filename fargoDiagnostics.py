@@ -109,7 +109,9 @@ def _computeCellDiagnostics(radialIntervals, thetaIntervals, vr, vtheta):
 
     return {
         "cellEccentricity": cellEccentricity,
-        "cellPeriastron": cellPeriastron
+        "cellPeriastron": cellPeriastron,
+        "cellEx": e_x,
+        "cellEy": e_y
         }
 
 def diskRadius(dens, radialIntervals):
@@ -203,17 +205,19 @@ def computeTotalMass(dens, radialEdges, radialIntervals, numThetaIntervals):
     return np.multiply(r_dr, sumRadialDens).sum(1)
 
 def computeDiagnostics(radialEdges, radialIntervals, thetaIntervals, dens, vr, vtheta):
-    diags = _computeCellDiagnostics(radialIntervals, thetaIntervals, vr, vtheta)
-    radialEccMK = _azimuthalMassAverage(diags['cellEccentricity'], dens)
-    radialPeriMK = _azimuthalMassAverage(diags['cellPeriastron'], dens)
+    cellDiags = _computeCellDiagnostics(radialIntervals, thetaIntervals, vr, vtheta)
+    radialEccMK = _azimuthalMassAverage(cellDiags['cellEccentricity'], dens)
+    radialPeriMK = _azimuthalMassAverage(cellDiags['cellPeriastron'], dens)
 
     lubowDiagnostics = _lubowDiagnostics(radialIntervals, thetaIntervals, dens, vr, vtheta)
     radialEccLubow = lubowDiagnostics['radialEccLubow']
     radialPeriLubow = lubowDiagnostics['radialPeriLubow']
 
     numThetaIntervals = len(thetaIntervals)
-    diskEccMK = diskMassAverage(diags['cellEccentricity'], dens, radialIntervals, numThetaIntervals)
-    diskPeriMK = diskMassAverage(diags['cellPeriastron'], dens, radialIntervals, numThetaIntervals)
+    diskEccMK = diskMassAverage(cellDiags['cellEccentricity'], dens, radialIntervals, numThetaIntervals)
+    diskPeriMK = diskMassAverage(cellDiags['cellPeriastron'], dens, radialIntervals, numThetaIntervals)
+    diskMKEx = diskMassAverage(cellDiags['cellEx'], dens, radialIntervals, numThetaIntervals)
+    diskMKEy = diskMassAverage(cellDiags['cellEy'], dens, radialIntervals, numThetaIntervals)
 
     fourierDiagnostics = _fourierRadialDiagnostics(dens)
     radialEccFourier = fourierDiagnostics['radialEccFourier']
@@ -253,5 +257,7 @@ def computeDiagnostics(radialEdges, radialIntervals, thetaIntervals, dens, vr, v
         "totalMass": totalMass,
 
         "diskRad90": diskRad90,
-        "diskRad95": diskRad95
+        "diskRad95": diskRad95,
+        "diskMKEx": diskMKEx,
+        "diskMKEy": diskMKEy
     }
