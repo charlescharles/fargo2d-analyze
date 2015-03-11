@@ -56,7 +56,9 @@ def _lubowDiagnostics(radialIntervals, thetaIntervals, dens, vr, vtheta):
 
     return {
         "radialEccLubow": e,
-        "radialPeriLubow": peri
+        "radialPeriLubow": peri,
+        "lubowVsin": vsin,
+        "lubowVcos": vcos
     }
 
 def _fourierRadialDiagnostics(dens):
@@ -210,17 +212,12 @@ def computeDiagnostics(radialEdges, radialIntervals, thetaIntervals, dens, vr, v
     lubowDiagnostics = _lubowDiagnostics(radialIntervals, thetaIntervals, dens, vr, vtheta)
     radialEccLubow = lubowDiagnostics['radialEccLubow']
     radialPeriLubow = lubowDiagnostics['radialPeriLubow']
+    radialLubowVsin = lubowDiagnostics['lubowVsin']
+    radialLubowVcos = lubowDiagnostics['lubowVcos']
 
     numThetaIntervals = len(thetaIntervals)
     diskEccMK = diskMassAverage(diags['cellEccentricity'], dens, radialIntervals, numThetaIntervals)
     diskPeriMK = diskMassAverage(diags['cellPeriastron'], dens, radialIntervals, numThetaIntervals)
-
-    fourierDiagnostics = _fourierRadialDiagnostics(dens)
-    radialEccFourier = fourierDiagnostics['radialEccFourier']
-    radialPeriFourier = fourierDiagnostics['radialPeriFourier']
-
-    diskEccFourier = radialDiskMassAverage(radialEccFourier, dens, radialEdges, radialIntervals, numThetaIntervals)
-    diskPeriFourier = radialDiskMassAverage(radialPeriFourier, dens, radialEdges, radialIntervals, numThetaIntervals)
 
     radialDens = 2.0 * radialIntervals * math.pi / numThetaIntervals * dens.sum(2)
 
@@ -228,6 +225,9 @@ def computeDiagnostics(radialEdges, radialIntervals, thetaIntervals, dens, vr, v
 
     diskEccLubow = radialDiskMassAverage(radialEccLubow, dens, radialEdges, radialIntervals, numThetaIntervals)
     diskPeriLubow = radialDiskMassAverage(radialPeriLubow, dens, radialEdges, radialIntervals, numThetaIntervals)
+
+    lubowVsin = radialDiskMassAverage(radialLubowVsin, dens, radialEdges, radialIntervals, numThetaIntervals)
+    lubowVcos = radialDiskMassAverage(radialLubowVcos, dens, radialEdges, radialIntervals, numThetaIntervals)
 
     diskRadii = diskRadius(dens, radialIntervals)
     diskRad90 = diskRadii['diskRadii90']
@@ -240,18 +240,17 @@ def computeDiagnostics(radialEdges, radialIntervals, thetaIntervals, dens, vr, v
         "radialPeriMK": radialPeriMK,
         "radialEccLubow": radialEccLubow,
         "radialPeriLubow": radialPeriLubow,
-        "radialEccFourier": radialEccFourier,
-        "radialPeriFourier": radialPeriFourier,
 
         "radialDens": radialDens,
         "diskEccMK": diskEccMK,
         "diskPeriMK": diskPeriMK,
         "diskEccLubow": diskEccLubow,
         "diskPeriLubow": diskPeriLubow,
-        "diskEccFourier": diskEccFourier,
-        "diskPeriFourier": diskPeriFourier,
         "totalMass": totalMass,
 
         "diskRad90": diskRad90,
-        "diskRad95": diskRad95
+        "diskRad95": diskRad95,
+
+        "lubowVsin": lubowVsin,
+        "lubowVcos": lubowVcos
     }

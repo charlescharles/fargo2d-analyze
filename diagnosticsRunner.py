@@ -57,11 +57,9 @@ class FargoDiagnosticsRunner:
 
             np.save(self.outputDir + '/radialEccMK' + str(i), calculations['radialEccMK'])
             np.save(self.outputDir + '/radialEccLubow' + str(i), calculations['radialEccLubow'])
-            np.save(self.outputDir + '/radialEccFourier' + str(i), calculations['radialEccFourier'])
 
             np.save(self.outputDir + '/radialPeriMK' + str(i), calculations['radialPeriMK'])
             np.save(self.outputDir + '/radialPeriLubow' + str(i), calculations['radialPeriLubow'])
-            np.save(self.outputDir + '/radialPeriFourier' + str(i), calculations['radialPeriFourier'])
 
             np.save(self.outputDir + '/radialDens' + str(i), calculations['radialDens'])
             np.save(self.outputDir + '/diskEccMK' + str(i), calculations['diskEccMK'])
@@ -70,12 +68,13 @@ class FargoDiagnosticsRunner:
             np.save(self.outputDir + '/diskEccLubow' + str(i), calculations['diskEccLubow'])
             np.save(self.outputDir + '/diskPeriLubow' + str(i), calculations['diskPeriLubow'])
 
-            np.save(self.outputDir + '/diskEccFourier' + str(i), calculations['diskEccFourier'])
-            np.save(self.outputDir + '/diskPeriFourier' + str(i), calculations['diskPeriFourier'])
             np.save(self.outputDir + '/totalMass' + str(i), calculations['totalMass'])
 
             np.save(self.outputDir + '/diskRadius90' + str(i), calculations['diskRad90'])
             np.save(self.outputDir + '/diskRadius95' + str(i), calculations['diskRad95'])
+
+            np.save(self.outputDir + '/lubowVsin' + str(i), calculations['lubowVsin'])
+            np.save(self.outputDir + '/lubowVcos' + str(i), calculations['lubowVcos'])
 
             i += len(dens)
 
@@ -87,63 +86,72 @@ class FargoDiagnosticsRunner:
                 'arrayFilename': 'eccMKVsTime.npy',
                 'yName': 'diskEccMK',
                 'yLabel': 'Disk eccentricity (Mueller-Kley)',
-                'title': 'Disk eccentricity vs time'
+                'title': 'Disk eccentricity vs time',
+                'plot': True
             },
             {
                 'fileFormat': '/diskPeriMK*.npy',
                 'arrayFilename': 'periMKVsTime.npy',
                 'yName': 'diskPeriMK',
                 'yLabel': 'Disk periastron angle (MK)',
-                'title': 'Disk periastron vs time'
+                'title': 'Disk periastron vs time',
+                'plot': True
             },
             {
                 'fileFormat': '/diskEccLubow*.npy',
                 'arrayFilename': 'eccLubowVsTime.npy',
                 'yName': 'diskEccLubow',
                 'yLabel': 'Disk eccentricity (Lubow)',
-                'title': 'Disk eccentricity vs time'
-            },
-            {
-                'fileFormat': '/diskEccFourier*.npy',
-                'arrayFilename': 'eccFourierVsTime.npy',
-                'yName': 'diskEccFourier',
-                'yLabel': 'Disk morphological eccentricity',
-                'title': 'Disk eccentricity vs time'
+                'title': 'Disk eccentricity vs time',
+                'plot': True
             },
             {
                 'fileFormat': '/diskPeriLubow*.npy',
                 'arrayFilename': 'periLubowVsTime.npy',
                 'yName': 'diskPeriLubow',
                 'yLabel': 'Disk periastron angle (Lubow)',
-                'title': 'Disk periastron vs time'
-            },
-            {
-                'fileFormat': '/diskPeriFourier*.npy',
-                'arrayFilename': 'periFourierVsTime.npy',
-                'yName': 'diskPeriFourier',
-                'yLabel': 'Disk periastron angle (m=1 phase)',
-                'title': 'Disk periastron vs time'
+                'title': 'Disk periastron vs time',
+                'plot': True
             },
             {
                 'fileFormat': '/totalMass*.npy',
                 'arrayFilename': 'massVsTime.npy',
                 'yName': 'totalMass',
                 'yLabel': 'Disk mass (code units)',
-                'title': 'Disk mass vs time'
+                'title': 'Disk mass vs time',
+                'plot': True
             },
             {
                 'fileFormat': '/diskRadius90*.npy',
                 'arrayFilename': 'diskRadius90.npy',
                 'yName': 'diskRadius90',
                 'yLabel': 'Disk radius (a, 90%)',
-                'title': 'Disk radius vs time'
+                'title': 'Disk radius vs time',
+                'plot': True
             },
             {
                 'fileFormat': '/diskRadius95*.npy',
                 'arrayFilename': 'diskRadius95.npy',
                 'yName': 'diskRadius95',
                 'yLabel': 'Disk radius (a, 95%)',
-                'title': 'Disk radius vs time'
+                'title': 'Disk radius vs time',
+                'plot': True
+            },
+            {
+                'fileFormat': '/lubowVsin*.npy',
+                'arrayFilename': 'lubowVsin.npy',
+                'yName': 'lubowVsin',
+                'yLabel': 'Lubow V_sin',
+                'title': 'Lubow V_sin',
+                'plot': False
+            },
+            {
+                'fileFormat': '/lubowVcos*.npy',
+                'arrayFilename': 'lubowVcos.npy',
+                'yName': 'lubowVcos',
+                'yLabel': 'Lubow V_cos',
+                'title': 'Lubow V_cos',
+                'plot': False
             }
         ]
 
@@ -157,8 +165,9 @@ class FargoDiagnosticsRunner:
 
         for type in diagnosticTypes:
             diag = diags[type['yName']]
-            print "plotting vs time " + type['yName']
-            self.plotter.vsTime(diag, type['yName'], type['yLabel'], type['title'])
+            if type['plot']:
+                print "plotting vs time " + type['yName']
+                self.plotter.vsTime(diag, type['yName'], type['yLabel'], type['title'])
 
         eccMK = diags['diskEccMK']
         periMK = diags['diskPeriMK']
