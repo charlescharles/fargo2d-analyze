@@ -123,7 +123,7 @@ class FargoDiagnosticsRunner:
             },
             {
                 'fileFormat': '/diskRadius90*.npy',
-                'arrayFilename': 'diskRadius90.npy',
+                'arrayFilename': 'radius90VsTime.npy',
                 'yName': 'diskRadius90',
                 'yLabel': 'Disk radius (a, 90%)',
                 'title': 'Disk radius vs time',
@@ -131,7 +131,7 @@ class FargoDiagnosticsRunner:
             },
             {
                 'fileFormat': '/diskRadius95*.npy',
-                'arrayFilename': 'diskRadius95.npy',
+                'arrayFilename': 'radius95VsTime.npy',
                 'yName': 'diskRadius95',
                 'yLabel': 'Disk radius (a, 95%)',
                 'title': 'Disk radius vs time',
@@ -139,7 +139,7 @@ class FargoDiagnosticsRunner:
             },
             {
                 'fileFormat': '/lubowVsin*.npy',
-                'arrayFilename': 'lubowVsin.npy',
+                'arrayFilename': 'vsinVsTime.npy',
                 'yName': 'lubowVsin',
                 'yLabel': 'Lubow V_sin',
                 'title': 'Lubow V_sin',
@@ -147,7 +147,7 @@ class FargoDiagnosticsRunner:
             },
             {
                 'fileFormat': '/lubowVcos*.npy',
-                'arrayFilename': 'lubowVcos.npy',
+                'arrayFilename': 'vcosVsTime.npy',
                 'yName': 'lubowVcos',
                 'yLabel': 'Lubow V_cos',
                 'title': 'Lubow V_cos',
