@@ -114,11 +114,12 @@ def _computeCellDiagnostics(radialIntervals, thetaIntervals, vr, vtheta):
         "cellPeriastron": cellPeriastron
         }
 
-def diskRadius(dens, radialIntervals):
+def diskRadius(dens, radialEdges, radialIntervals):
     nt, nr, ns = dens.shape
-    rmat = np.array([np.array([radialIntervals]* ns).transpose()] * nt)
+    rmid = np.array([np.array([radialIntervals]* ns).transpose()] * nt)
+    rdiff = np.array([np.array([np.ediff1d(radialEdges)]* ns).transpose()] * nt)
 
-    weighted = (dens * rmat).sum(axis=2)
+    weighted = (dens * rmid * rdiff).sum(axis=2)
     totals = weighted.sum(axis=1)
 
     totalsMat = np.array([totals] * nr).transpose()
@@ -229,7 +230,7 @@ def computeDiagnostics(radialEdges, radialIntervals, thetaIntervals, dens, vr, v
     lubowVsin = radialDiskMassAverage(radialLubowVsin, dens, radialEdges, radialIntervals, numThetaIntervals)
     lubowVcos = radialDiskMassAverage(radialLubowVcos, dens, radialEdges, radialIntervals, numThetaIntervals)
 
-    diskRadii = diskRadius(dens, radialIntervals)
+    diskRadii = diskRadius(dens, radialEdges, radialIntervals)
     diskRad90 = diskRadii['diskRadii90']
     diskRad95 = diskRadii['diskRadii95']
 
