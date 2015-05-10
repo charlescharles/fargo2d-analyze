@@ -30,32 +30,18 @@ def main():
     while True:
         try:
             dens = np.fromfile('gasdens'+str(i)+'.dat').reshape(nr, ns)
-            vr = np.fromfile('gasvrad'+str(i)+'.dat').reshape(nr, ns)
             vtheta = np.fromfile('gasvtheta'+str(i)+'.dat').reshape(nr, ns)
         except IOError:
             print 'finished at ' + str(i)
             break
-        specL = specificAngMom(secr[i], sect[i], r, theta, vr, vtheta)
-        angularMom.append(np.sum(specL * dens * rmat * drmat))
+
+        angularMom.append(np.sum(dens * vtheta * rmat * drmat))
         if i%100 == 0:
             print i
         i += 1
 
     print 'saving'
-    np.save('parsedDiagnostics/angularMom', angularMom)
-
-def specificAngMom(secr, sect, r, theta, vr, vtheta):
-    m = 0.2857
-    psi = theta - sect
-
-    a = m/(1.+m)
-    c = np.sqrt(np.square(a) + np.square(r) - 2. * a * r * np.cos(psi))
-    alpha = np.arcsin(a * np.sin(psi) / c)
-
-    L1 = vtheta * np.cos(alpha)
-    L2 = -1. * vr * np.sin(alpha)
-
-    return L1 + L2
-
+    np.save('parsedDiagnostics/angularMomRot', angularMom)
+    
 if __name__ == '__main__':
     main()
