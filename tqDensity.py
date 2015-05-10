@@ -37,6 +37,7 @@ def main():
         tqdens.append(np.sum(tq * dens * rmat * drmat, 1))
         if i%100 == 0:
             print i
+        i += 1
 
     print 'saving'
     np.save('parsedDiagnostics/tqDensity', tqdens)
