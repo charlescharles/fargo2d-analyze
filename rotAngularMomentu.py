@@ -42,6 +42,6 @@ def main():
 
     print 'saving'
     np.save('parsedDiagnostics/angularMomRot', angularMom)
-    
+
 if __name__ == '__main__':
     main()
