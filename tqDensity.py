@@ -43,7 +43,7 @@ def main():
     np.save('parsedDiagnostics/tqDensity', tqdens)
 
 def torque(secr, sect, r, theta):
-    m = 0.4
+    m = 0.2857
     psi = theta - sect
     a = 1./np.power(np.square(r)+np.square(secr)-2. * secr * r * np.cos(psi), 1.5)
     b = 1./np.power(secr, 3)
