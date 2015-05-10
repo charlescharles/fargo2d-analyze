@@ -39,7 +39,7 @@ def main():
             print i
 
     print 'saving'
-    np.save('tqDensity', tqdens)
+    np.save('parsedDiagnostics/tqDensity', tqdens)
 
 def torque(secr, sect, r, theta):
     m = 0.4
