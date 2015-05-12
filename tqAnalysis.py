@@ -132,7 +132,7 @@ def initvars():
 def main():
     parser = ArgumentParser()
     parser.add_argument('-m', '--binary-mass', nargs='?', default=0.2857, type=float)
-    parser.add_argument('-c', '--computation', nargs='?', default='all', type='string')
+    parser.add_argument('-c', '--computation', nargs='?', default='all', type=str)
     args = parser.parse_args()
 
     mb = args.binary_mass
@@ -182,7 +182,7 @@ def main():
                 break
 
             fargoTq = computeFargoTorque(mb, secr, sectheta, dens, r_sup, r_inf, r_med, theta)
-    
+
             if i%100 == 0:
                 print i
             i += 1
