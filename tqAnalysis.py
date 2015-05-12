@@ -37,17 +37,21 @@ def computeTorqueDensity(mb, secr, sect, dens, r_med, theta, modes, indirect_ter
     n_modes = len(modes)
     psi = theta - sect
 
-    length = 2. * np.pi * r_med / ns
+    dist = np.sqrt(np.square(r_med) + np.square(secr) - 2. * r_med * secr * np.cos(psi))
 
-    scale = dens * mb * secr * r_med * np.sin(psi)
-
-    force = 1. / np.power(np.square(r_med) + np.square(secr) - 2. * r_med * secr * np.cos(psi), 1.5)
-
+    accel = 1./ np.power(dist, 3)
     if indirect_term:
-        force -= 1. / np.power(secr, 3)
+        accel -= 1. / np.power(secr, 3)
+
+    accel = mb * secr * accel
+
+    # specific torque
+    spec_tq = r_med * accel * np.sin(psi) * secr / dist
+
+    r_dtheta = 2. * np.pi * r_med / ns
 
     # dT/dr per cell. shape (nr, ns)
-    cell_tq = length * scale * force
+    cell_tq = r_dtheta * dens * spec_tq
 
     # tile cell_tq along z axis n_modes times
     # resulting array has shape (n_modes, nr, ns)
