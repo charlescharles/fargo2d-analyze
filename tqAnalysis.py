@@ -76,7 +76,7 @@ def computeL(dens, vtheta, r_sup, r_inf, r_med):
 
 def main():
     parser = ArgumentParser()
-    parser.add_argument('-m', '--binary-mass', nargs='?', const=0.2857, type=float)
+    parser.add_argument('-m', '--binary-mass', nargs='?', default=0.2857, type=float)
     args = parser.parse_args()
 
     mb = args.binary_mass
