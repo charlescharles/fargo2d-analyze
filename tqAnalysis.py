@@ -181,7 +181,7 @@ def main():
                 print 'finished at ' + str(i)
                 break
 
-            fargoTq = computeFargoTorque(mb, secr[i], sectheta[i], dens, r_sup, r_inf, r_med, theta)
+            fargoTq.append(computeFargoTorque(mb, secr[i], sectheta[i], dens, r_sup, r_inf, r_med, theta))
 
             if i%100 == 0:
                 print i
