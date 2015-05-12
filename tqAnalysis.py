@@ -139,7 +139,7 @@ def main():
     compute = args.computation
 
     print 'using binary mass ' + str(mb)
-    print 'computing ' + compute + 'torques'
+    print 'computing ' + compute + ' torques'
 
     nr, ns, secr, sectheta, r_inf, r_sup, r_med, theta, dr = initvars()
 
@@ -181,7 +181,7 @@ def main():
                 print 'finished at ' + str(i)
                 break
 
-            fargoTq = computeFargoTorque(mb, secr, sectheta, dens, r_sup, r_inf, r_med, theta)
+            fargoTq = computeFargoTorque(mb, secr[i], sectheta[i], dens, r_sup, r_inf, r_med, theta)
 
             if i%100 == 0:
                 print i
