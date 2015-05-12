@@ -78,15 +78,33 @@ def computeL(dens, vtheta, r_sup, r_inf, r_med):
     return np.sum(dens * area * vtheta * r_med)
 
 
-def main():
-    parser = ArgumentParser()
-    parser.add_argument('-m', '--binary-mass', nargs='?', default=0.2857, type=float)
-    args = parser.parse_args()
+def computeFargoTorque(mb, secr, sect, dens, r_sup, r_inf, r_med, theta):
+    nr, ns = dens.shape
 
-    mb = args.binary_mass
+    surf = np.pi * (np.square(r_sup) - np.square(r_inf)) / ns
 
-    print 'using binary mass ' + str(mb)
+    mcell = surf * dens
 
+    xcell = r_med * np.cos(theta)
+    ycell = r_med * np.sin(theta)
+
+    xb = secr * np.cos(sect)
+    yb = secr * np.sin(sect)
+
+    dx = xcell - xb
+    dy = ycell - yb
+
+    dist3 = np.power(np.square(dx) + np.square(dy), 1.5)
+
+    fxi = mcell * dx / dist3
+    fyi = mcell * dy / dist3
+
+    tq = yb * fxi - xb * fyi
+
+    return tq.sum()
+
+
+def initvars():
     nr, ns = 438, 574
     radialEdges = np.loadtxt('used_rad.dat')
     n = len(radialEdges)
@@ -108,31 +126,70 @@ def main():
 
     secr, sectheta = getTrajectory()
 
-    i = 0
-    tqDensityFourier = []
-    totalTqDirect = []
-    angularMomentum = []
-    while True:
-        try:
-            dens = np.fromfile('gasdens'+str(i)+'.dat').reshape(nr, ns)
-            vtheta = np.fromfile('gasvtheta'+str(i)+'.dat').reshape(nr, ns)
-        except IOError:
-            print 'finished at ' + str(i)
-            break
+    return nr, ns, secr, sectheta, r_inf, r_sup, r_med, theta, dr
 
-        tqDensityFourier.append(computeTorqueDensity(mb, secr[i], sectheta[i], dens, r_med, theta, np.arange(11), True))
-        directDens = computeTorqueDensity(mb, secr[i], sectheta[i], dens, r_med, theta, [0], False)[0]
-        totalTqDirect.append(np.sum(directDens * dr))
-        angularMomentum.append(computeL(dens, vtheta, r_sup, r_inf, r_med))
 
-        if i%100 == 0:
-            print i
-        i += 1
+def main():
+    parser = ArgumentParser()
+    parser.add_argument('-m', '--binary-mass', nargs='?', default=0.2857, type=float)
+    parser.add_argument('-c', '--computation', nargs='?', default='all', type='string')
+    args = parser.parse_args()
 
-    print 'saving'
-    np.save('parsedDiagnostics/tqFourier', tqDensityFourier)
-    np.save('parsedDiagnostics/tqDirect', totalTqDirect)
-    np.save('parsedDiagnostics/angularMomentum', angularMomentum)
+    mb = args.binary_mass
+    compute = args.computation
+
+    print 'using binary mass ' + str(mb)
+    print 'computing ' + compute + 'torques'
+
+    nr, ns, secr, sectheta, r_inf, r_sup, r_med, theta, dr = initvars()
+
+    if compute == 'all':
+        i = 0
+        tqDensityFourier = []
+        totalTqDirect = []
+        angularMomentum = []
+        while True:
+            try:
+                dens = np.fromfile('gasdens'+str(i)+'.dat').reshape(nr, ns)
+                vtheta = np.fromfile('gasvtheta'+str(i)+'.dat').reshape(nr, ns)
+            except IOError:
+                print 'finished at ' + str(i)
+                break
+
+            tqDensityFourier.append(computeTorqueDensity(mb, secr[i], sectheta[i], dens, r_med, theta, np.arange(11), True))
+            directDens = computeTorqueDensity(mb, secr[i], sectheta[i], dens, r_med, theta, [0], False)[0]
+            totalTqDirect.append(np.sum(directDens * dr))
+            angularMomentum.append(computeL(dens, vtheta, r_sup, r_inf, r_med))
+
+            if i%100 == 0:
+                print i
+            i += 1
+
+        print 'saving'
+        np.save('parsedDiagnostics/tqFourier', tqDensityFourier)
+        np.save('parsedDiagnostics/tqDirect', totalTqDirect)
+        np.save('parsedDiagnostics/angularMomentum', angularMomentum)
+        return
+
+    elif compute == 'fargo':
+        i = 0
+        fargoTq = []
+        while True:
+            try:
+                dens = np.fromfile('gasdens'+str(i)+'.dat').reshape(nr, ns)
+            except IOError:
+                print 'finished at ' + str(i)
+                break
+
+            fargoTq = computeFargoTorque(mb, secr, sectheta, dens, r_sup, r_inf, r_med, theta)
+    
+            if i%100 == 0:
+                print i
+            i += 1
+
+        print 'saving'
+        np.save('parsedDiagnostics/fargoTq', fargoTq)
+        return
 
 
 if __name__ == '__main__':
