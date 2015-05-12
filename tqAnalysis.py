@@ -41,10 +41,10 @@ def computeTorqueDensity(mb, secr, sect, dens, r_med, theta, modes, indirect_ter
 
     scale = dens * mb * secr * r_med * np.sin(psi)
 
-    force = 1. / np.power(secr, 3)
+    force = 1. / np.power(np.square(r_med) + np.square(secr) - 2. * r_med * secr * np.cos(psi), 1.5)
 
     if indirect_term:
-        force -= 1. / np.power(np.square(r_med) + np.square(secr) - 2. * r_med * secr * np.cos(psi), 1.5)
+        force -= 1. / np.power(secr, 3)
 
     # dT/dr per cell. shape (nr, ns)
     cell_tq = length * scale * force
