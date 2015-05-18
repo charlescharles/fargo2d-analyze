@@ -23,7 +23,7 @@ def getTrajectory():
 turn an array of shape (nr) into array of shape (nr, ns)
 """
 def azimuthalStack(a, ns):
-    return np.array([a] * ns).transpose()
+    return np.array([a] * ns)
 
 
 """
@@ -160,6 +160,8 @@ def main():
         tqDensityFourier = []
         totalTqDirect = []
         angularMomentum = []
+        dL = []
+        m0 = mass(np.fromfile('gasdens0.dat').reshape(nr, ns), r_sup, r_inf)
         while True:
             try:
                 dens = np.fromfile('gasdens'+str(i)+'.dat').reshape(nr, ns)
@@ -173,6 +175,10 @@ def main():
             totalTqDirect.append(np.sum(directDens * dr))
             angularMomentum.append(computeL(dens, vtheta, r_sup, r_inf, r_med))
 
+            m1 = mass(dens, r_sup, r_inf)
+            dL.append(deltaL(dens, vtheta, r_med, m1-m0))
+            m0 = m1
+            
             if i%100 == 0:
                 print i
             i += 1
@@ -181,6 +187,7 @@ def main():
         np.save('parsedDiagnostics/tqFourier', tqDensityFourier)
         np.save('parsedDiagnostics/tqDirect', totalTqDirect)
         np.save('parsedDiagnostics/angularMomentum', angularMomentum)
+        np.save('parsedDiagnostics/deltaL', dL)
         return
 
     elif compute == 'fargo':
