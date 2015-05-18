@@ -305,7 +305,7 @@ def main():
                 dens = np.fromfile('gasdens'+str(i)+'.dat').reshape(nr, ns)
             except IOError:
                 break
-            tq.append(computeTotalTq(secr[i], sectheta[i], dens, r_sup, r_inf, r_med, theta, indirect_term=True))
+            tq.append(computeTotalTq(mb, secr[i], sectheta[i], dens, r_sup, r_inf, r_med, theta, True))
 
             if i%100 == 0:
                 print i
