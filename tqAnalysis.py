@@ -72,29 +72,35 @@ def computeTorqueDensity(mb, secr, sect, dens, r_med, theta, modes, indirect_ter
 """
 Total torque
 """
-def computeTotalTq(mb, secr, sect, dens, r_sup, r_inf, r_med, theta, indirect_term):
-    nr, ns = r_med.shape
-    psi = theta - sect
+def computeTotalTq(mb, secr, sect, dens, r_sup, r_inf, r_med, theta):
+    nr, ns = dens.shape
 
-    dr = r_sup - r_inf
+    surf = np.pi * (np.square(r_sup) - np.square(r_inf)) / ns
 
-    dist = np.sqrt(np.square(r_med) + np.square(secr) - 2. * r_med * secr * np.cos(psi))
+    mcell = surf * dens
 
-    accel = 1./ np.power(dist, 3)
-    if indirect_term:
-        accel -= 1. / np.power(secr, 3)
+    xcell = r_med * np.cos(theta)
+    ycell = r_med * np.sin(theta)
 
-    accel = mb * secr * accel
+    xb = secr * np.cos(sect)
+    yb = secr * np.sin(sect)
 
-    # specific torque
-    spec_tq = r_med * accel * np.sin(psi) * secr / dist
+    dx = xcell - xb
+    dy = ycell - yb
 
-    r_dtheta = 2. * np.pi * r_med / ns
+    dist3 = np.power(np.square(dx) + np.square(dy), 1.5)
 
-    # dT/dr per cell. shape (nr, ns)
-    cell_tq = r_dtheta * dens * spec_tq
+    direct = 1./ dist3
+    indirect = 1. / np.power(secr, 3)
 
-    return np.sum(cell_tq * dr)
+    indirectFactor = (direct - indirect) / direct
+
+    fxi = indirectFactor * mb * mcell * dx / dist3
+    fyi = indirectFactor * mb * mcell * dy / dist3
+
+    tq = yb * fxi - xb * fyi
+
+    return tq.sum()
 
 
 def computeL(dens, vtheta, r_sup, r_inf, r_med):
@@ -173,18 +179,14 @@ def main():
     parser.add_argument('-m', '--binary-mass', nargs='?', default=0.2857, type=float)
     parser.add_argument('-c', '--computation', nargs='?', default='all', type=str)
     parser.add_argument('-e', '--end', nargs='?', default=-1, type=int)
-    parser.add_argument('--direct', dest='direct', action='store_true')
-    parser.set_defaults(direct=False)
     args = parser.parse_args()
 
     mb = args.binary_mass
     compute = args.computation
     end = args.end
-    direct = args.direct
 
     print 'using binary mass ' + str(mb)
     print 'computing ' + compute
-    print 'with only direct term? ' + str(direct)
 
     if end == -1:
         print 'for all orbits'
@@ -301,7 +303,6 @@ def main():
     elif compute == 'totaltq':
         i = 0
         tq = []
-        indirect = not direct
         while True:
             if end > 0 and i > end:
                 break
@@ -310,7 +311,7 @@ def main():
                 dens = np.fromfile('gasdens'+str(i)+'.dat').reshape(nr, ns)
             except IOError:
                 break
-            tq.append(computeTotalTq(mb, secr[i], sectheta[i], dens, r_sup, r_inf, r_med, theta, indirect))
+            tq.append(computeTotalTq(mb, secr[i], sectheta[i], dens, r_sup, r_inf, r_med, theta))
 
             if i%100 == 0:
                 print i
@@ -318,10 +319,7 @@ def main():
 
         print 'finished at ' + str(i)
         print 'saving'
-        fname = 'parsedDiagnostics/totalTq'
-        if direct:
-            fname += 'Direct'
-        np.save(fname, tq)
+        np.save('parsedDiagnostics/totalTq', tq)
         return
 
 if __name__ == '__main__':
