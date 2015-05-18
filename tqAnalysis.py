@@ -96,8 +96,8 @@ def computeFargoTorque(mb, secr, sect, dens, r_sup, r_inf, r_med, theta):
 
     dist3 = np.power(np.square(dx) + np.square(dy), 1.5)
 
-    fxi = mcell * dx / dist3
-    fyi = mcell * dy / dist3
+    fxi = mb * mcell * dx / dist3
+    fyi = mb * mcell * dy / dist3
 
     tq = yb * fxi - xb * fyi
 
@@ -127,6 +127,18 @@ def initvars():
     secr, sectheta = getTrajectory()
 
     return nr, ns, secr, sectheta, r_inf, r_sup, r_med, theta, dr
+
+def deltaL(dens, vtheta, r_med, dm):
+    # avg vtheta at edge
+    avgVtheta = np.sum(dens[-1] * vtheta[-1])/np.sum(dens[-1])
+
+    return dm * avgVtheta * r_med[-1][0]
+
+def mass(dens, r_sup, r_inf):
+    nr, ns = dens.shape
+    surf = np.pi * (np.square(r_sup) - np.square(r_inf)) / ns
+
+    return np.sum(surf * dens)
 
 
 def main():
@@ -190,6 +202,31 @@ def main():
         print 'saving'
         np.save('parsedDiagnostics/fargoTq', fargoTq)
         return
+
+    elif compute == 'deltal':
+        i = 0
+        dL = []
+        m0 = mass(np.fromfile('gasdens0.dat').reshape(nr, ns), r_sup, r_inf)
+        while True:
+            try:
+                dens = np.fromfile('gasdens'+str(i)+'.dat').reshape(nr, ns)
+                vtheta = np.fromfile('gasvtheta'+str(i)+'.dat').reshape(nr, ns)
+            except IOError:
+                print 'finished at ' + str(i)
+                break
+
+            m1 = mass(dens, r_sup, r_inf)
+            dL.append(deltaL(dens, vtheta, r_med, m1-m0))
+            m0 = m1
+
+            if i%100 == 0:
+                print i
+            i += 1
+
+        print 'saving'
+        np.save('parsedDiagnostics/deltaL', dL)
+        return
+
 
 
 if __name__ == '__main__':
