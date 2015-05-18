@@ -23,7 +23,7 @@ def getTrajectory():
 turn an array of shape (nr) into array of shape (nr, ns)
 """
 def azimuthalStack(a, ns):
-    return np.array([a] * ns)
+    return np.array([a] * ns).transpose()
 
 
 """
