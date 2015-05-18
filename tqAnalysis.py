@@ -145,13 +145,20 @@ def main():
     parser = ArgumentParser()
     parser.add_argument('-m', '--binary-mass', nargs='?', default=0.2857, type=float)
     parser.add_argument('-c', '--computation', nargs='?', default='all', type=str)
+    parser.add_argument('-e', '--end', nargs='?', default=-1, type=int)
     args = parser.parse_args()
 
     mb = args.binary_mass
     compute = args.computation
+    end = args.end
 
     print 'using binary mass ' + str(mb)
-    print 'computing ' + compute + ' torques'
+    print 'computing ' + compute
+
+    if end == -1:
+        print 'for all orbits'
+    else:
+        print 'until orbit ' + str(end)
 
     nr, ns, secr, sectheta, r_inf, r_sup, r_med, theta, dr = initvars()
 
@@ -163,11 +170,13 @@ def main():
         dL = []
         m0 = mass(np.fromfile('gasdens0.dat').reshape(nr, ns), r_sup, r_inf)
         while True:
+            if end > 0 and i > end:
+                break
+
             try:
                 dens = np.fromfile('gasdens'+str(i)+'.dat').reshape(nr, ns)
                 vtheta = np.fromfile('gasvtheta'+str(i)+'.dat').reshape(nr, ns)
             except IOError:
-                print 'finished at ' + str(i)
                 break
 
             tqDensityFourier.append(computeTorqueDensity(mb, secr[i], sectheta[i], dens, r_med, theta, np.arange(11), True))
@@ -178,11 +187,12 @@ def main():
             m1 = mass(dens, r_sup, r_inf)
             dL.append(deltaL(dens, vtheta, r_med, m1-m0))
             m0 = m1
-            
+
             if i%100 == 0:
                 print i
             i += 1
 
+        print 'finished at ' + str(i)
         print 'saving'
         np.save('parsedDiagnostics/tqFourier', tqDensityFourier)
         np.save('parsedDiagnostics/tqDirect', totalTqDirect)
