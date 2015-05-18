@@ -69,6 +69,33 @@ def computeTorqueDensity(mb, secr, sect, dens, r_med, theta, modes, indirect_ter
 
     return np.sqrt(np.square(sine) + np.square(cosine))
 
+"""
+Total torque
+"""
+def computeTotalTq(mb, secr, sect, dens, r_sup, r_inf, r_med, theta, indirect_term):
+    nr, ns = r_med.shape
+    psi = theta - sect
+
+    dr = r_sup - r_inf
+
+    dist = np.sqrt(np.square(r_med) + np.square(secr) - 2. * r_med * secr * np.cos(psi))
+
+    accel = 1./ np.power(dist, 3)
+    if indirect_term:
+        accel -= 1. / np.power(secr, 3)
+
+    accel = mb * secr * accel
+
+    # specific torque
+    spec_tq = r_med * accel * np.sin(psi) * secr / dist
+
+    r_dtheta = 2. * np.pi * r_med / ns
+
+    # dT/dr per cell. shape (nr, ns)
+    cell_tq = r_dtheta * dens * spec_tq
+
+    return np.sum(cell_tq * dr)
+
 
 def computeL(dens, vtheta, r_sup, r_inf, r_med):
     nr, ns = dens.shape
@@ -267,6 +294,27 @@ def main():
         np.save('parsedDiagnostics/angularMomentum', angularMomentum)
         return
 
+    elif compute == 'totaltq':
+        i = 0
+        tq = []
+        while True:
+            if end > 0 and i > end:
+                break
+
+            try:
+                dens = np.fromfile('gasdens'+str(i)+'.dat').reshape(nr, ns)
+            except IOError:
+                break
+            tq.append(computeTotalTq(secr[i], sectheta[i], dens, r_sup, r_inf, r_med, theta, indirect_term=True))
+
+            if i%100 == 0:
+                print i
+            i += 1
+
+        print 'finished at ' + str(i)
+        print 'saving'
+        np.save('parsedDiagnostics/totalTq', tq)
+        return
 
 if __name__ == '__main__':
     main()
