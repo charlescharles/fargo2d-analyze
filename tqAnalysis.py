@@ -173,17 +173,18 @@ def main():
     parser.add_argument('-m', '--binary-mass', nargs='?', default=0.2857, type=float)
     parser.add_argument('-c', '--computation', nargs='?', default='all', type=str)
     parser.add_argument('-e', '--end', nargs='?', default=-1, type=int)
-    parser.add_argument('-i', '--indirect', nargs='?', default=True, type=bool)
+    parser.add_argument('--direct', dest='direct', action='store_true')
+    parser.set_defaults(direct=False)
     args = parser.parse_args()
 
     mb = args.binary_mass
     compute = args.computation
     end = args.end
-    indirect = args.indirect
+    direct = args.direct
 
     print 'using binary mass ' + str(mb)
     print 'computing ' + compute
-    print 'with indirect term? ' + str(indirect)
+    print 'with only direct term? ' + str(direct)
 
     if end == -1:
         print 'for all orbits'
@@ -300,6 +301,7 @@ def main():
     elif compute == 'totaltq':
         i = 0
         tq = []
+        indirect = not direct
         while True:
             if end > 0 and i > end:
                 break
@@ -317,7 +319,7 @@ def main():
         print 'finished at ' + str(i)
         print 'saving'
         fname = 'parsedDiagnostics/totalTq'
-        if not indirect:
+        if direct:
             fname += 'Direct'
         np.save(fname, tq)
         return
