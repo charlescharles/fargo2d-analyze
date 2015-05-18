@@ -173,14 +173,17 @@ def main():
     parser.add_argument('-m', '--binary-mass', nargs='?', default=0.2857, type=float)
     parser.add_argument('-c', '--computation', nargs='?', default='all', type=str)
     parser.add_argument('-e', '--end', nargs='?', default=-1, type=int)
+    parser.add_argument('-i', '--indirect', nargs='?', default=True, type=bool)
     args = parser.parse_args()
 
     mb = args.binary_mass
     compute = args.computation
     end = args.end
+    indirect = args.indirect
 
     print 'using binary mass ' + str(mb)
     print 'computing ' + compute
+    print 'with indirect term? ' + str(indirect)
 
     if end == -1:
         print 'for all orbits'
@@ -305,7 +308,7 @@ def main():
                 dens = np.fromfile('gasdens'+str(i)+'.dat').reshape(nr, ns)
             except IOError:
                 break
-            tq.append(computeTotalTq(mb, secr[i], sectheta[i], dens, r_sup, r_inf, r_med, theta, True))
+            tq.append(computeTotalTq(mb, secr[i], sectheta[i], dens, r_sup, r_inf, r_med, theta, indirect))
 
             if i%100 == 0:
                 print i
@@ -313,7 +316,10 @@ def main():
 
         print 'finished at ' + str(i)
         print 'saving'
-        np.save('parsedDiagnostics/totalTq', tq)
+        fname = 'parsedDiagnostics/totalTq'
+        if not indirect:
+            fname += 'Direct'
+        np.save(fname, tq)
         return
 
 if __name__ == '__main__':
