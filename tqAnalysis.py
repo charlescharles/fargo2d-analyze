@@ -244,6 +244,28 @@ def main():
         np.save('parsedDiagnostics/deltaL', dL)
         return
 
+    elif compute == 'angularmom':
+        i = 0
+        angularMomentum = []
+        while True:
+            if end > 0 and i > end:
+                break
+
+            try:
+                dens = np.fromfile('gasdens'+str(i)+'.dat').reshape(nr, ns)
+                vtheta = np.fromfile('gasvtheta'+str(i)+'.dat').reshape(nr, ns)
+            except IOError:
+                break
+            angularMomentum.append(computeL(dens, vtheta, r_sup, r_inf, r_med))
+
+            if i%100 == 0:
+                print i
+            i += 1
+
+        print 'finished at ' + str(i)
+        print 'saving'
+        np.save('parsedDiagnostics/angularMomentum', angularMomentum)
+        return
 
 
 if __name__ == '__main__':
